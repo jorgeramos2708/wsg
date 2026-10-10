@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using WindowsSystemGuardian.Contracts.Environment;
 using WindowsSystemGuardian.Contracts.Observability;
 using WindowsSystemGuardian.Core.Abstractions;
+using WindowsSystemGuardian.Core.Diagnostics;
 using WindowsSystemGuardian.Windows.Diagnostics;
 
 namespace WindowsSystemGuardian.Windows.Backup;
@@ -43,15 +44,24 @@ public sealed class WindowsVssHealthCollector : IObservabilityCollector
             .Where(state => state >= 0)
             .ToList();
 
-        var unhealthy = states.Count(state => state != 1);
+        // 1 = Stable; 2-8 = transitorios normales (Waiting*); 0 y >=9 = Failed*/undefined.
+        // Un estado transitorio NO es un fallo: demostrado empíricamente con estado [5]
+        // en un sistema sano (docs/AUDIT_MSDOC_0.5.0.md, hallazgo H-2).
+        var classification = VssWriterStateInterpreter.Classify(states);
         var metrics = new List<MetricSample>
         {
             new($"metric:backup.vss.writers_total:{now:yyyyMMddHHmmssfff}",
                 now, EvidenceCategory.Backup, "VSS",
-                "backup.vss.writers_total", states.Count, "count"),
-            new($"metric:backup.vss.writers_unhealthy:{now:yyyyMMddHHmmssfff}",
+                "backup.vss.writers_total", classification.Total, "count"),
+            new($"metric:backup.vss.writers_stable:{now:yyyyMMddHHmmssfff}",
                 now, EvidenceCategory.Backup, "VSS",
-                "backup.vss.writers_unhealthy", unhealthy, "count")
+                "backup.vss.writers_stable", classification.Stable, "count"),
+            new($"metric:backup.vss.writers_transient:{now:yyyyMMddHHmmssfff}",
+                now, EvidenceCategory.Backup, "VSS",
+                "backup.vss.writers_transient", classification.Transient, "count"),
+            new($"metric:backup.vss.writers_failed:{now:yyyyMMddHHmmssfff}",
+                now, EvidenceCategory.Backup, "VSS",
+                "backup.vss.writers_failed", classification.Failed, "count")
         };
         var evidence = new List<EvidenceRecord>();
 
@@ -63,10 +73,16 @@ public sealed class WindowsVssHealthCollector : IObservabilityCollector
             return CollectorResult.Failure(Name, Cost, now,
                 "vssadmin no produjo estados de writers interpretables. WSG no atribuye esto a un fallo VSS sin evidencia suficiente.");
 
-        if (unhealthy > 0)
+        if (classification.Failed > 0)
         {
             evidence.Add(Evidence(now, EvidenceSeverity.Warning,
-                $"VSS reporta {unhealthy} writer(s) fuera del estado Stable entre {states.Count} detectados. WSG no reinició servicios ni modificó snapshots."));
+                $"VSS reporta {classification.Failed} writer(s) en estado de fallo entre {classification.Total} detectados. WSG no reinició servicios ni modificó snapshots."));
+        }
+
+        if (classification.Transient > 0)
+        {
+            evidence.Add(Evidence(now, EvidenceSeverity.Informational,
+                $"{classification.Transient} writer(s) VSS reportan estados transitorios normales (Waiting*) entre {classification.Total} detectados; ocurren durante actividad de respaldo y no se tratan como fallo."));
         }
 
         return CollectorResult.Success(Name, Cost, now, evidence, metrics);

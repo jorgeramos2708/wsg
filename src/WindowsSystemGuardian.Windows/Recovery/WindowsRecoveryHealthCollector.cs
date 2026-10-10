@@ -1,6 +1,7 @@
 using WindowsSystemGuardian.Contracts.Environment;
 using WindowsSystemGuardian.Contracts.Observability;
 using WindowsSystemGuardian.Core.Abstractions;
+using WindowsSystemGuardian.Core.Diagnostics;
 using WindowsSystemGuardian.Windows.Diagnostics;
 
 namespace WindowsSystemGuardian.Windows.Recovery;
@@ -33,16 +34,9 @@ public sealed class WindowsRecoveryHealthCollector : IObservabilityCollector
             return CollectorResult.Failure(Name, Cost, now, "REAgentC /info excedió el tiempo máximo permitido.");
 
         var output = result.CombinedOutput;
-        var enabled = ContainsAny(output,
-            "Windows RE status:         Enabled",
-            "Windows RE status: Enabled",
-            "Estado de Windows RE:         Habilitado",
-            "Estado de Windows RE: Habilitado");
-        var disabled = ContainsAny(output,
-            "Windows RE status:         Disabled",
-            "Windows RE status: Disabled",
-            "Estado de Windows RE:         Deshabilitado",
-            "Estado de Windows RE: Deshabilitado");
+        var status = WinReStatusInterpreter.Parse(output);
+        var enabled = status == WinReStatus.Enabled;
+        var disabled = status == WinReStatus.Disabled;
 
         if (result.ExitCode != 0)
             return CollectorResult.Failure(Name, Cost, now,
@@ -87,6 +81,4 @@ public sealed class WindowsRecoveryHealthCollector : IObservabilityCollector
             message);
     }
 
-    private static bool ContainsAny(string text, params string[] values) =>
-        values.Any(value => text.Contains(value, StringComparison.OrdinalIgnoreCase));
 }
