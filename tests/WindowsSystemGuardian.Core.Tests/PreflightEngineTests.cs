@@ -20,6 +20,13 @@ public sealed class PreflightEngineTests
         "riesgo de prueba",
         TimeSpan.FromMinutes(45));
 
+    private static readonly RemediationPlan ServiceRestartPlan = new(
+        RemediationActionId.WindowsUpdateServiceRestart,
+        "WindowsUpdateFailure",
+        "Reinicio controlado de los servicios Windows Update (bits, wuauserv)",
+        "riesgo de prueba",
+        TimeSpan.FromMinutes(5));
+
     private readonly PreflightEngine _sut = new();
 
     private static IRemediationPreflightProbe Probe(
@@ -74,6 +81,20 @@ public sealed class PreflightEngineTests
 
         Assert.False(result.Allowed);
         Assert.Contains(result.BlockingReasons, r => r.Contains("Espacio libre", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ServiceRestart_SkipsDiskSpaceCheck_EvenWithNoSpace()
+    {
+        // Spec 0.6.0 AC3: el chequeo de espacio no aplica a acciones que no consumen disco.
+        var result = _sut.Evaluate(
+            ServiceRestartPlan,
+            Probe(freeBytes: 0),
+            remediationAlreadyRunning: false);
+
+        Assert.True(result.Allowed);
+        var space = Assert.Single(result.Checks, c => c.Name == "Espacio libre en la unidad del sistema");
+        Assert.Contains("No aplica", space.Detail, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.ServiceProcess;
 using System.Text;
 using WindowsSystemGuardian.Contracts.Remediation;
 using WindowsSystemGuardian.Core.Remediation;
@@ -11,18 +12,109 @@ internal sealed record ElevatedRunnerResult(
     string Output);
 
 /// <summary>
-/// Ejecuta exclusivamente los comandos del catálogo de remediación (DISM /RestoreHealth,
-/// SFC /scannow), resueltos desde System32, con timeout, árbol de procesos bajo control
-/// y salida acotada. Mismo patrón que ReadOnlyDiagnosticProcessRunner de 0.4.1; no
-/// contiene switches de reparación distintos de los dos soportados.
+/// Ejecuta exclusivamente las operaciones del catálogo de remediación: ProcessCommand
+/// (DISM /RestoreHealth, SFC /scannow resueltos desde System32, con timeout, árbol de
+/// procesos bajo control y salida acotada) y ServiceRestart (reinicio controlado de
+/// bits y wuauserv mediante la API oficial System.ServiceProcess.ServiceController —
+/// learn.microsoft.com/dotnet/api/system.serviceprocess.servicecontroller). Mismo
+/// patrón que ReadOnlyDiagnosticProcessRunner de 0.4.1; no ejecuta comandos arbitrarios.
 /// </summary>
 internal sealed class ElevatedRemediationRunner
 {
     private const int MaximumOutputCharacters = 8_192;
 
+    /// <summary>Timeout por servicio aprobado en la spec 0.6.0 (4 pasos ≤ 5 min del catálogo).</summary>
+    private static readonly TimeSpan PerServiceTimeout = TimeSpan.FromSeconds(60);
+
     public async Task<ElevatedRunnerResult> RunAsync(RemediationActionId action)
     {
         var spec = RemediationCommandCatalog.For(action);
+        return spec.Kind switch
+        {
+            RemediationCommandKind.ServiceRestart => await Task.Run(() => RunServiceRestart(spec)),
+            _ => await RunProcessAsync(spec)
+        };
+    }
+
+    /// <summary>
+    /// Reinicio controlado aprobado en la spec 0.6.0: stop(bits) → stop(wuauserv) →
+    /// start(wuauserv) → start(bits). Sin borrado de cachés ni servicios distintos.
+    /// Marcador determinista WU_RESTART_OK solo si todos los pasos terminaron bien.
+    /// </summary>
+    private static ElevatedRunnerResult RunServiceRestart(RemediationCommandCatalog.CommandSpec spec)
+    {
+        var log = new StringBuilder();
+        log.AppendLine($"Operación: {spec.DisplayCommand}");
+
+        try
+        {
+            StopService("bits", log);
+            StopService("wuauserv", log);
+            StartService("wuauserv", log);
+            StartService("bits", log);
+            log.AppendLine("WU_RESTART_OK");
+            return new ElevatedRunnerResult(0, false, Limit(log.ToString()));
+        }
+        catch (Exception ex)
+        {
+            log.AppendLine($"[fallo] {ex.Message}");
+            // Restauración best-effort: el estado final no puede dejar WU muerto.
+            TryEnsureRunning("wuauserv", log);
+            TryEnsureRunning("bits", log);
+            return new ElevatedRunnerResult(4, false, Limit(log.ToString()));
+        }
+    }
+
+    private static void StopService(string serviceName, StringBuilder log)
+    {
+        using var controller = new ServiceController(serviceName);
+        if (controller.Status == ServiceControllerStatus.Stopped)
+        {
+            log.AppendLine($"[stop] {serviceName}: ya estaba detenido.");
+            return;
+        }
+
+        if (controller.Status != ServiceControllerStatus.StopPending)
+            controller.Stop();
+
+        controller.WaitForStatus(ServiceControllerStatus.Stopped, PerServiceTimeout);
+        log.AppendLine($"[stop] {serviceName}: detenido.");
+    }
+
+    private static void StartService(string serviceName, StringBuilder log)
+    {
+        using var controller = new ServiceController(serviceName);
+        if (controller.Status == ServiceControllerStatus.Running)
+        {
+            log.AppendLine($"[start] {serviceName}: ya estaba en ejecución.");
+            return;
+        }
+
+        controller.Start();
+        controller.WaitForStatus(ServiceControllerStatus.Running, PerServiceTimeout);
+        log.AppendLine($"[start] {serviceName}: en ejecución.");
+    }
+
+    private static void TryEnsureRunning(string serviceName, StringBuilder log)
+    {
+        try
+        {
+            using var controller = new ServiceController(serviceName);
+            if (controller.Status != ServiceControllerStatus.Running)
+            {
+                controller.Start();
+                controller.WaitForStatus(ServiceControllerStatus.Running, PerServiceTimeout);
+                log.AppendLine($"[restauración] {serviceName}: en ejecución.");
+            }
+        }
+        catch (Exception restoreError)
+        {
+            log.AppendLine($"[restauración] {serviceName}: no se pudo asegurar el arranque ({restoreError.Message}).");
+        }
+    }
+
+    private async Task<ElevatedRunnerResult> RunProcessAsync(RemediationCommandCatalog.CommandSpec spec)
+    {
         var executable = Path.Combine(Environment.SystemDirectory, spec.ExecutableName);
 
         var startInfo = new ProcessStartInfo

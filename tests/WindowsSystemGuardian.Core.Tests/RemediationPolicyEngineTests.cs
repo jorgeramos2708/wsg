@@ -71,8 +71,35 @@ public sealed class RemediationPolicyEngineTests
         Assert.Contains("no reparable", blockedReason, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void WindowsUpdateFailure_Active_IsAllowedWithServiceRestart()
+    {
+        var allowed = _sut.TryBuildPlan(
+            "WindowsUpdateFailure",
+            IncidentState.Active,
+            out var plan,
+            out var blockedReason);
+
+        Assert.True(allowed);
+        Assert.Equal(RemediationActionId.WindowsUpdateServiceRestart, plan.Action);
+        Assert.Contains("bits", plan.CommandDisplay, StringComparison.Ordinal);
+        Assert.Contains("wuauserv", plan.CommandDisplay, StringComparison.Ordinal);
+        Assert.Contains("SoftwareDistribution", plan.RiskSummary, StringComparison.Ordinal);
+        Assert.Equal(TimeSpan.FromMinutes(5), plan.Timeout);
+        Assert.Equal(string.Empty, blockedReason);
+    }
+
+    [Fact]
+    public void IsRemediableRootCause_MatchesPolicyMapping()
+    {
+        Assert.True(RemediationPolicyEngine.IsRemediableRootCause("ComponentStoreCorruption"));
+        Assert.True(RemediationPolicyEngine.IsRemediableRootCause("SystemFileIntegrity"));
+        Assert.True(RemediationPolicyEngine.IsRemediableRootCause("WindowsUpdateFailure"));
+        Assert.False(RemediationPolicyEngine.IsRemediableRootCause("ComponentStoreNonRepairable"));
+        Assert.False(RemediationPolicyEngine.IsRemediableRootCause(null));
+    }
+
     [Theory]
-    [InlineData("WindowsUpdateFailure")]
     [InlineData("PendingServicingReboot")]
     [InlineData("RecoveryEnvironmentUnavailable")]
     [InlineData("VssWriterFailure")]
@@ -110,17 +137,23 @@ public sealed class RemediationPolicyEngineTests
     }
 
     [Fact]
-    public void Catalog_HasExactlyTheTwoSupportedActions()
+    public void Catalog_HasExactlyTheSupportedActions()
     {
         var componentStore = RemediationCommandCatalog.For(RemediationActionId.ComponentStoreRepair);
         var systemFiles = RemediationCommandCatalog.For(RemediationActionId.SystemFileRepair);
+        var wuRestart = RemediationCommandCatalog.For(RemediationActionId.WindowsUpdateServiceRestart);
 
         Assert.Equal("dism.exe", componentStore.ExecutableName);
         Assert.Equal("/Online /Cleanup-Image /RestoreHealth /NoRestart /English", componentStore.Arguments);
         Assert.Equal(TimeSpan.FromMinutes(60), componentStore.Timeout);
+        Assert.Equal(RemediationCommandKind.ProcessCommand, componentStore.Kind);
         Assert.Equal("sfc.exe", systemFiles.ExecutableName);
         Assert.Equal("/scannow", systemFiles.Arguments);
         Assert.Equal(TimeSpan.FromMinutes(45), systemFiles.Timeout);
+        Assert.Equal(RemediationCommandKind.ProcessCommand, systemFiles.Kind);
+        Assert.Equal(RemediationCommandKind.ServiceRestart, wuRestart.Kind);
+        Assert.Equal(string.Empty, wuRestart.ExecutableName);
+        Assert.Equal(TimeSpan.FromMinutes(5), wuRestart.Timeout);
     }
 
     [Fact]

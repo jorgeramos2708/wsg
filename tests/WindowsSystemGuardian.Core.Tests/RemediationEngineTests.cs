@@ -177,7 +177,7 @@ public sealed class RemediationEngineTests
         var engine = CreateEngine();
 
         var result = await engine.ExecuteAsync(
-            "WindowsUpdateFailure", IncidentState.Active, Approval(Guid.NewGuid()), TestContext.Current.CancellationToken);
+            "PendingServicingReboot", IncidentState.Active, Approval(Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.False(result.Executed);
         Assert.Equal(RemediationPhase.Preflight, result.ReachedPhase);

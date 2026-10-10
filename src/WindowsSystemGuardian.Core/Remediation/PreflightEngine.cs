@@ -52,16 +52,22 @@ public sealed class PreflightEngine
                 : "No hay ninguna remediación en curso."));
 
         var freeBytes = SafeProbe(() => probe.GetSystemDriveFreeSpaceBytes(), 0L);
-        var enoughSpace = freeBytes >= MinimumSystemDriveFreeBytes;
+        // El chequeo de espacio solo aplica a acciones que ejecutan procesos de
+        // servicing (DISM/SFC); un reinicio de servicios no consume disco (spec 0.6.0, AC3).
+        var requiresDiskSpace = RemediationCommandCatalog.For(plan.Action).Kind
+            == RemediationCommandKind.ProcessCommand;
+        var enoughSpace = !requiresDiskSpace || freeBytes >= MinimumSystemDriveFreeBytes;
         checks.Add(new PreflightCheck(
             "Espacio libre en la unidad del sistema",
             enoughSpace,
             Blocking: true,
-            enoughSpace
-                ? $"Espacio libre suficiente: {freeBytes / 1_000_000_000.0:0.#} GB."
-                : $"Espacio libre insuficiente en la unidad del sistema " +
-                  $"({freeBytes / 1_000_000_000.0:0.##} GB; se requieren al menos " +
-                  $"{MinimumSystemDriveFreeBytes / 1_000_000_000.0:0.#} GB)."));
+            !requiresDiskSpace
+                ? "No aplica: la acción no consume espacio en disco."
+                : enoughSpace
+                    ? $"Espacio libre suficiente: {freeBytes / 1_000_000_000.0:0.#} GB."
+                    : $"Espacio libre insuficiente en la unidad del sistema " +
+                      $"({freeBytes / 1_000_000_000.0:0.##} GB; se requieren al menos " +
+                      $"{MinimumSystemDriveFreeBytes / 1_000_000_000.0:0.#} GB)."));
 
         if (plan.Action == RemediationActionId.ComponentStoreRepair)
         {

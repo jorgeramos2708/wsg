@@ -1,10 +1,10 @@
-# WSG 0.5.0 — Safety Model
+# WSG 0.6.0 — Safety Model
 
 ## Regla central
 
 **Detectar no concede permiso para modificar.**
 
-0.4.x es observación/diagnóstico/recomendación. 0.5.0 añade la **primera rebanada de remediación controlada**: exactamente dos acciones, siempre con preflight + aprobación explícita del operador + verificación posterior. No existe reparación automática.
+0.4.x es observación/diagnóstico/recomendación. 0.5.0 añadió la primera rebanada de remediación controlada; 0.6.0 añade una tercera acción: reinicio controlado de los servicios Windows Update. Siempre con preflight + aprobación explícita del operador + verificación posterior. No existe reparación automática.
 
 ## CLI diagnósticas (solo lectura, sin cambios de 0.4.1)
 
@@ -31,14 +31,21 @@ Permitido en 0.4.1 (sin cambios):
 
 ## Remediación controlada (nuevo en 0.5.0)
 
-**Acciones soportadas — exactamente dos:**
+**Acciones soportadas — exactamente tres:**
 
 | Acción | Causa raíz que la habilita | Comando (fuente única: `RemediationCommandCatalog`) |
 |---|---|---|
 | `ComponentStoreRepair` | `ComponentStoreCorruption` (incidente `Active`) | `DISM.exe /Online /Cleanup-Image /RestoreHealth /NoRestart /English` |
 | `SystemFileRepair` | `SystemFileIntegrity` (incidente `Active`) | `sfc.exe /scannow` |
+| `WindowsUpdateServiceRestart` | `WindowsUpdateFailure` (incidente `Active`) | Reinicio controlado de `bits`/`wuauserv` vía `ServiceController` (sin borrado de cachés) |
 
 Cualquier otra causa raíz — incluida `ComponentStoreNonRepairable` — es rechazada por `RemediationPolicyEngine` con motivo explícito.
+
+**Frontera de control de servicios (nueva en 0.6.0):**
+
+- `System.ServiceProcess.ServiceController` (API oficial de .NET para servicios) solo puede usarse en `WindowsSystemGuardian.PrivilegedHost/ElevatedRemediationRunner.cs`; `static-safety-audit.ps1` verifica la confinación.
+- Servicios alcanzables: únicamente `bits` y `wuauserv`. Queda prohibido borrar `SoftwareDistribution`/`Catroot2`, detener otros servicios o desinstalar actualizaciones.
+- Orden aprobado: stop(bits) → stop(wuauserv) → start(wuauserv) → start(bits), con `WaitForStatus` y timeout de 60 s por paso; si un paso falla, restauración best-effort y resultado `Indeterminate` (nunca éxito parcial interpretado como éxito).
 
 **Flujo obligatorio** (`RemediationEngine`): política → preflight → aprobación explícita → ejecución elevada → registro de auditoría. La verificación posterior (`DISM /CheckHealth`, `SFC /verifyonly`) alimenta el ciclo de vida existente: `Monitoring` con una captura limpia, `Resolved` con dos.
 

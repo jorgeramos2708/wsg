@@ -47,6 +47,8 @@ $allowedProcessFiles = @(
 )
 $allowedElevationFile = [IO.Path]::GetFullPath(
     (Join-Path $source 'WindowsSystemGuardian.Windows\Remediation\ElevatedProcessLauncher.cs'))
+$allowedServiceControlFile = [IO.Path]::GetFullPath(
+    (Join-Path $source 'WindowsSystemGuardian.PrivilegedHost\ElevatedRemediationRunner.cs'))
 $allowedCatalogFile = [IO.Path]::GetFullPath(
     (Join-Path $source 'WindowsSystemGuardian.Core\Remediation\RemediationCommandCatalog.cs'))
 $allowedHostRunnerFile = [IO.Path]::GetFullPath(
@@ -73,6 +75,12 @@ Get-ChildItem $source -Recurse -File -Include *.cs,*.ps1 | ForEach-Object {
     # El verbo runas (UAC) solo se admite en el launcher de elevación.
     if ($text -match '"runas"' -and $fullName -ne $allowedElevationFile) {
         $violations += "[elevation] Uso de runas fuera del launcher autorizado: $($_.FullName)"
+    }
+
+    # El control de servicios (ServiceController: stop/start de bits y wuauserv) queda
+    # confinado al runner elevado de PrivilegedHost (0.6.0).
+    if ($text -match 'ServiceController' -and $fullName -ne $allowedServiceControlFile) {
+        $violations += "[service-control] Uso de ServiceController fuera del runner autorizado: $($_.FullName)"
     }
 
     # Todo uso real de System.Diagnostics.Process queda confinado a los runners y al launcher.

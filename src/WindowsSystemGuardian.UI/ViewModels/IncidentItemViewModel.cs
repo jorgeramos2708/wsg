@@ -1,5 +1,6 @@
 using System.Windows;
 using WindowsSystemGuardian.Contracts.Incidents;
+using WindowsSystemGuardian.Core.Remediation;
 
 namespace WindowsSystemGuardian.UI.ViewModels;
 
@@ -54,11 +55,11 @@ public sealed class IncidentItemViewModel
     public string RootCauseKind => Incident.RootCause.Kind;
 
     /// <summary>
-    /// 0.5.0: la remediación solo se ofrece a incidentes Active con las dos causas raíz
-    /// soportadas por la política (ComponentStoreCorruption, SystemFileIntegrity).
+    /// 0.6.0: la visibilidad del botón la decide la política (fuente única de causas
+    /// soportadas), no una lista duplicada en la UI.
     /// </summary>
     public bool CanRemediate => Incident.State == IncidentState.Active &&
-        Incident.RootCause.Kind is "ComponentStoreCorruption" or "SystemFileIntegrity";
+        RemediationPolicyEngine.IsRemediableRootCause(Incident.RootCause.Kind);
 
     public Visibility RemediationVisibility => CanRemediate
         ? Visibility.Visible

@@ -5,11 +5,20 @@ namespace WindowsSystemGuardian.Core.Remediation;
 
 /// <summary>
 /// Decide si una acción de remediación está permitida para una causa raíz y un estado
-/// de incidente. Fail-closed: solo dos causas raíz producen plan; cualquier otro valor,
-/// estado distinto de Active o causa no soportada se rechaza con motivo explícito.
+/// de incidente. Fail-closed: solo las causas raíz soportadas producen plan; cualquier
+/// otro valor, estado distinto de Active o causa no soportada se rechaza con motivo.
 /// </summary>
 public sealed class RemediationPolicyEngine
 {
+    /// <summary>
+    /// Causas raíz con acción de remediación soportada en 0.6.0. Fuente única también
+    /// para la UI (visibilidad del botón "Reparar…"): sin listas duplicadas.
+    /// </summary>
+    public static bool IsRemediableRootCause(string? rootCauseKind) => rootCauseKind
+        is "ComponentStoreCorruption"
+        or "SystemFileIntegrity"
+        or "WindowsUpdateFailure";
+
     public bool TryBuildPlan(
         string? rootCauseKind,
         IncidentState incidentState,
@@ -52,6 +61,17 @@ public sealed class RemediationPolicyEngine
                     "Sustituye los archivos protegidos de Windows que no pasen la verificación de integridad. " +
                     "Puede tardar hasta 45 minutos; no reinicia el equipo y deja detalle en CBS.log.",
                     CatalogFor(RemediationActionId.SystemFileRepair).Timeout);
+                return true;
+
+            case "WindowsUpdateFailure":
+                plan = new RemediationPlan(
+                    RemediationActionId.WindowsUpdateServiceRestart,
+                    rootCauseKind,
+                    CatalogFor(RemediationActionId.WindowsUpdateServiceRestart).DisplayCommand,
+                    "Detiene y reinicia, en orden controlado, los servicios BITS y Windows Update (wuauserv). " +
+                    "No borra cachés (SoftwareDistribution/Catroot2), no desinstala actualizaciones y no " +
+                    "reinicia el equipo. Puede tardar hasta 5 minutos.",
+                    CatalogFor(RemediationActionId.WindowsUpdateServiceRestart).Timeout);
                 return true;
 
             case "ComponentStoreNonRepairable":

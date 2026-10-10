@@ -6,9 +6,9 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>0.5.0</Version>
-    <AssemblyVersion>0.5.0.0</AssemblyVersion>
-    <FileVersion>0.5.0.0</FileVersion>
-    <InformationalVersion>0.5.0-remediation-foundation</InformationalVersion>
+    <Version>0.6.0</Version>
+    <AssemblyVersion>0.6.0.0</AssemblyVersion>
+    <FileVersion>0.6.0.0</FileVersion>
+    <InformationalVersion>0.6.0-wu-remediation</InformationalVersion>
   </PropertyGroup>
 </Project>

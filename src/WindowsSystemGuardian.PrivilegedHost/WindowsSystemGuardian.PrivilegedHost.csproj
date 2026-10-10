@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\WindowsSystemGuardian.Contracts\WindowsSystemGuardian.Contracts.csproj" />
     <ProjectReference Include="..\WindowsSystemGuardian.Core\WindowsSystemGuardian.Core.csproj" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 </Project>

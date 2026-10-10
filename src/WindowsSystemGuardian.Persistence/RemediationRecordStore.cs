@@ -22,7 +22,6 @@ public sealed class RemediationRecordStore : IRemediationRecordStore
     };
 
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private readonly string _rootPath;
     private readonly int _retentionDays;
 
     public RemediationRecordStore(string? rootPath = null, int retentionDays = 90)

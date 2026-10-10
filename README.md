@@ -1,16 +1,24 @@
-# Windows System Guardian 0.5.0
+# Windows System Guardian 0.6.0
 
 **Windows System Guardian (WSG)** es una herramienta Windows orientada a:
 
 > **observar → detectar → correlacionar → explicar → recomendar → reparar de forma controlada → verificar**
 
-La versión **0.5.0 — Controlled Remediation Foundation** mantiene todo el motor de 0.4.1 y habilita la primera rebanada de remediación controlada: `DISM /RestoreHealth` y `SFC /scannow` contra `ComponentStoreCorruption` y `SystemFileIntegrity`, siempre con preflight + aprobación explícita del operador + ejecución elevada aislada (`PrivilegedHost` + UAC) + verificación. **Ninguna otra acción se ejecuta.**
+La versión **0.6.0 — Windows Update Remediation** amplía la foundation de 0.5.0 con una tercera acción acotada: ante `WindowsUpdateFailure`, el operador puede ejecutar un **reinicio controlado de los servicios `bits` y `wuauserv`** (API oficial `ServiceController`, sin borrado de cachés) desde `PrivilegedHost`, con el mismo flujo de gates y verificación. **Nada más se ejecuta.**
 
+
+## 0.6.0 — Remediación de Windows Update
+
+- Nueva acción `WindowsUpdateServiceRestart`: stop(bits) → stop(wuauserv) → start(wuauserv) → start(bits), con `WaitForStatus` y timeout por paso (60 s); restauración best-effort si un paso falla; marcador determinista `WU_RESTART_OK` para el veredicto.
+- El chequeo de espacio del preflight no aplica a esta acción (no consume disco, spec 0.6.0 AC3).
+- El botón "Reparar…" de la UI lo decide la política (`RemediationPolicyEngine.IsRemediableRootCause`) — sin listas duplicadas en la UI.
+- Control de servicios confinado a `PrivilegedHost` (`static-safety-audit` verifica que `ServiceController` no aparezca fuera de él).
+- Gate de QA: **0 errores, 0 advertencias, pruebas en verde y 3 auditorías PASS**.
 
 ## 0.5.0 — Controlled Remediation Foundation
 
 - **Frontera de elevación**: `PrivilegedHost` (consola `requireAdministrator`) ejecuta exclusivamente los comandos del catálogo (`RemediationCommandCatalog`); la UI lo lanza con UAC (`ElevatedProcessLauncher`, única excepción `runas` con validación de versión) y valida el resultado JSON por contrato (schema, acción, requestId).
-- **Gates**: `RemediationPolicyEngine` (solo 2 causas raíz soportadas), `PreflightEngine` (privilegios, reinicio de servicing pendiente, remediación en curso, espacio en disco), `ApprovalGate` (aprobación explícita por ejecución, comando exacto visible, sin persistencia).
+- **Gates**: `RemediationPolicyEngine` (causas raíz soportadas por política), `PreflightEngine` (privilegios, reinicio de servicing pendiente, remediación en curso, espacio en disco cuando aplica), `ApprovalGate` (aprobación explícita por ejecución, comando exacto visible, sin persistencia).
 - **Verificación**: los collectors read-only declarados por el incidente alimentan el ciclo `Active → Monitoring → Resolved` (dos capturas limpias).
 - **Auditoría**: `RemediationRecordStore` (JSONL append-only) registra preflight, aprobación, ejecución y verificación por requestId.
 - **Exit codes de PrivilegedHost**: 0 completado, 2 argumentos inválidos, 3 timeout, 4 fallo de ejecución.

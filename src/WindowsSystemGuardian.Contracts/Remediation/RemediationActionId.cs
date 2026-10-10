@@ -8,5 +8,6 @@ public enum RemediationActionId
 {
     None = 0,
     ComponentStoreRepair,
-    SystemFileRepair
+    SystemFileRepair,
+    WindowsUpdateServiceRestart
 }

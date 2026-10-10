@@ -17,7 +17,9 @@ public static class RemediationOutcomeParser
         bool timedOut,
         string? output)
     {
-        if (action is not (RemediationActionId.ComponentStoreRepair or RemediationActionId.SystemFileRepair))
+        if (action is not (RemediationActionId.ComponentStoreRepair
+            or RemediationActionId.SystemFileRepair
+            or RemediationActionId.WindowsUpdateServiceRestart))
             return RemediationParsedVerdict.Indeterminate;
 
         if (timedOut)
@@ -37,8 +39,18 @@ public static class RemediationOutcomeParser
         return action switch
         {
             RemediationActionId.ComponentStoreRepair => ParseComponentStore(text),
+            RemediationActionId.WindowsUpdateServiceRestart => ParseServiceRestart(text),
             _ => ParseSystemFiles(text)
         };
+    }
+
+    private static RemediationParsedVerdict ParseServiceRestart(string text)
+    {
+        // PrivilegedHost emite el marcador determinista WU_RESTART_OK solo si todos
+        // los pasos (stop bits/wuauserv, start wuauserv/bits) terminaron en Running/Stopped.
+        return ContainsAny(text, "WU_RESTART_OK")
+            ? RemediationParsedVerdict.Repaired
+            : RemediationParsedVerdict.Indeterminate;
     }
 
     private static RemediationParsedVerdict ParseComponentStore(string text)

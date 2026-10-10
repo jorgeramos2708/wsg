@@ -186,6 +186,42 @@ public sealed class RemediationOutcomeParserTests
     }
 
     [Fact]
+    public void WuRestart_SuccessMarker_IsRepaired()
+    {
+        var verdict = RemediationOutcomeParser.Parse(
+            RemediationActionId.WindowsUpdateServiceRestart,
+            exitCode: 0,
+            timedOut: false,
+            output: "Operación: Reinicio controlado de los servicios Windows Update (bits, wuauserv)\n[stop] bits: detenido.\n[stop] wuauserv: detenido.\n[start] wuauserv: en ejecución.\n[start] bits: en ejecución.\nWU_RESTART_OK");
+
+        Assert.Equal(RemediationParsedVerdict.Repaired, verdict);
+    }
+
+    [Fact]
+    public void WuRestart_FailureOutput_IsIndeterminate()
+    {
+        var verdict = RemediationOutcomeParser.Parse(
+            RemediationActionId.WindowsUpdateServiceRestart,
+            exitCode: 4,
+            timedOut: false,
+            output: "[fallo] No se pudo abrir el servicio wuauserv");
+
+        Assert.Equal(RemediationParsedVerdict.Indeterminate, verdict);
+    }
+
+    [Fact]
+    public void WuRestart_SuccessExitWithoutMarker_IsIndeterminate()
+    {
+        var verdict = RemediationOutcomeParser.Parse(
+            RemediationActionId.WindowsUpdateServiceRestart,
+            exitCode: 0,
+            timedOut: false,
+            output: "pasos incompletos, sin marcador");
+
+        Assert.Equal(RemediationParsedVerdict.Indeterminate, verdict);
+    }
+
+    [Fact]
     public void UnsupportedAction_IsIndeterminate()
     {
         var verdict = RemediationOutcomeParser.Parse(
