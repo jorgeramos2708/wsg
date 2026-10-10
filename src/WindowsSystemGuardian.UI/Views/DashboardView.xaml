@@ -1,6 +1,8 @@
 <UserControl x:Class="WindowsSystemGuardian.UI.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Loaded="DashboardView_OnLoaded"
+             Unloaded="DashboardView_OnUnloaded">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="30,26,30,34">
             <Grid Margin="0,0,0,20">
@@ -14,6 +16,60 @@
                 </StackPanel>
                 <Button Grid.Column="1" Content="Actualizar" Click="Refresh_OnClick" VerticalAlignment="Center" Style="{StaticResource WsgPrimaryButtonStyle}" />
             </Grid>
+
+            <!-- Monitoreo en vivo (0.7.0): CPU/RAM/commit cada 2 segundos, solo lectura del sistema -->
+            <Border Style="{StaticResource WsgCardStyle}" Margin="0,0,0,18" Padding="18">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Live.StatusDotText, Mode=OneWay}" Foreground="{Binding Live.StatusDotColor, Mode=OneWay}" FontSize="14" VerticalAlignment="Center" />
+                            <TextBlock Text="Monitoreo en vivo" FontWeight="SemiBold" FontSize="16" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Live.StatusText, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Pausar / Reanudar" Click="LiveToggle_OnClick" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Grid Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="CPU" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding Live.CpuText, Mode=OneWay}" FontWeight="SemiBold" />
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Live.CpuPercent, Mode=OneWay}" Height="8" Margin="0,6,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Memoria" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding Live.MemoryText, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Live.MemoryLoadPercent, Mode=OneWay}" Height="8" Margin="0,6,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Commit" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding Live.CommitText, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Live.CommitPercent, Mode=OneWay}" Height="8" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="{Binding Live.LastUpdatedText, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
 
             <!-- Resumen por severidad -->
             <Grid Margin="0,0,0,18">

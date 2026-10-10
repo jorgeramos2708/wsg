@@ -108,7 +108,7 @@ public partial class App : Application
         services.AddSingleton<IncidentLifecycleTracker>();
         services.AddSingleton<ObservabilityService>();
 
-        // Remediación controlada 0.5.0: preflight, aprobación explícita, host elevado y auditoría.
+        // Monitoreo controlada 0.5.0: preflight, aprobación explícita, host elevado y auditoría.
         services.AddSingleton<WindowsRemediationPreflightProbe>();
         services.AddSingleton<IRemediationPreflightProbe>(sp => sp.GetRequiredService<WindowsRemediationPreflightProbe>());
         services.AddSingleton<IElevatedRemediationLauncher, ElevatedProcessLauncher>();
@@ -119,6 +119,10 @@ public partial class App : Application
         services.AddSingleton<RemediationEngine>();
         services.AddSingleton<RemediationVerificationService>();
         services.AddTransient<RemediationViewModel>();
+
+        // Monitoreo en tiempo real 0.7.0: el collector de rendimiento (solo lectura) sin escrituras al store.
+        services.AddSingleton<LiveMonitorViewModel>(sp => new LiveMonitorViewModel(
+            sp.GetServices<IObservabilityCollector>().First(c => c.Name == "Rendimiento")));
 
         services.AddSingleton<SystemStateViewModel>();
         services.AddSingleton<ObservabilityViewModel>();

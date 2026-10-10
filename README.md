@@ -1,10 +1,18 @@
-# Windows System Guardian 0.6.0
+# Windows System Guardian 0.7.0
 
 **Windows System Guardian (WSG)** es una herramienta Windows orientada a:
 
 > **observar → detectar → correlacionar → explicar → recomendar → reparar de forma controlada → verificar**
 
-La versión **0.6.0 — Windows Update Remediation** amplía la foundation de 0.5.0 con una tercera acción acotada: ante `WindowsUpdateFailure`, el operador puede ejecutar un **reinicio controlado de los servicios `bits` y `wuauserv`** (API oficial `ServiceController`, sin borrado de cachés) desde `PrivilegedHost`, con el mismo flujo de gates y verificación. **Nada más se ejecuta.**
+La versión **0.7.0 — Live Monitoring** añade monitoreo de recursos en tiempo real en el Dashboard: CPU, RAM y commit se actualizan cada 2 segundos (`DispatcherTimer` + `GetSystemTimes`/`GlobalMemoryStatusEx`), **solo lectura del sistema y sin escrituras al store de evidencia**. Todo lo de 0.6.0 (3 acciones de remediación controlada) permanece sin cambios.
+
+## 0.7.0 — Live Monitoring
+
+- Tarjeta **"Monitoreo en vivo"** en el Dashboard: CPU %, RAM usada/total y commit % con barras de progreso, indicador de estado y botón pausar/reanudar.
+- `DispatcherTimer` (hilo de UI, documentación oficial de WPF) con busy-guard: si la captura anterior sigue en curso, el tick se salta.
+- El timer corre solo mientras el Dashboard es visible (`Loaded`/`Unloaded`).
+- **Las muestras vivas no se persisten**: la evidencia del store mantiene su cadencia normal (evita inundar el JSONL append-only).
+- El mapeo `CollectorResult → LiveResourceSample` vive en Core y está probado (fail-closed ante métricas faltantes).
 
 
 ## 0.6.0 — Remediación de Windows Update
