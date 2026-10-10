@@ -1,0 +1,97 @@
+<UserControl x:Class="WindowsSystemGuardian.UI.Views.IncidentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30,26,30,34">
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Incidentes y causa probable" Style="{StaticResource WsgSectionTitleStyle}" />
+                    <TextBlock Text="WSG agrupa hallazgos cercanos en el tiempo, explica la hipótesis de causa raíz y propone un orden de resolución verificable." Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Correlacionar ahora" Click="Refresh_OnClick" Style="{StaticResource WsgPrimaryButtonStyle}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="1.25*" /></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Incidentes activos" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding IncidentCount, Mode=OneWay}" FontSize="34" FontWeight="SemiBold"/></StackPanel></Border>
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Críticos" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding CriticalIncidentCount, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" Foreground="{StaticResource WsgCriticalBrush}"/></StackPanel></Border>
+                <Border Grid.Column="4" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Resueltos / 24 h" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding ResolvedIncidentCount, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" Foreground="{StaticResource WsgGoodBrush}"/></StackPanel></Border>
+                <Border Grid.Column="6" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Motor" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="Determinístico" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Sin IA y sin ejecución automática" Style="{StaticResource WsgMutedTextStyle}"/></StackPanel></Border>
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Incidents, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource WsgCardStyle}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Title, Mode=OneWay}" FontSize="19" FontWeight="SemiBold" Foreground="#FF172033" TextWrapping="Wrap" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Border CornerRadius="12" Padding="10,4" Background="#FFF7F8FA" BorderBrush="#FFE5EAF1" BorderThickness="1" Margin="0,0,6,0">
+                                            <TextBlock Text="{Binding State, Mode=OneWay}" Foreground="{Binding StateColor, Mode=OneWay}" FontWeight="SemiBold" />
+                                        </Border>
+                                        <Border CornerRadius="12" Padding="10,4" Background="#FFF7F8FA" BorderBrush="#FFE5EAF1" BorderThickness="1">
+                                            <TextBlock Text="{Binding Severity, Mode=OneWay}" Foreground="{Binding SeverityColor, Mode=OneWay}" FontWeight="SemiBold" />
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="{Binding Summary, Mode=OneWay}" Foreground="#FF4B5563" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                <TextBlock Text="{Binding Impact, Mode=OneWay}" Foreground="#FF4B5563" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,0" />
+
+                                <Border Background="#FFF4F8FF" BorderBrush="#FFD6E7FF" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Causa probable" Foreground="#FF2563A8" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding RootCauseTitle, Mode=OneWay}" FontWeight="SemiBold" FontSize="15" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding RootCauseExplanation, Mode=OneWay}" Foreground="#FF4B5563" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Confidence, Mode=OneWay}" Foreground="#FF2563A8" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Componentes" FontWeight="SemiBold"/><TextBlock Grid.Column="1" Text="{Binding AffectedEntitiesText, Mode=OneWay}" TextWrapping="Wrap"/></Grid>
+                                <Grid Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Periodo" FontWeight="SemiBold"/><TextBlock Grid.Column="1" Text="{Binding Time, Mode=OneWay}"/></Grid>
+
+                                <TextBlock Text="Plan recomendado" Style="{StaticResource WsgCardTitleStyle}" Margin="0,14,0,4" />
+                                <ItemsControl ItemsSource="{Binding Recommendations, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#FFE5EAF1" BorderThickness="0,0,0,1" Padding="0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="150"/></Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Order, Mode=OneWay}" FontWeight="Bold" Foreground="{StaticResource WsgBlueBrush}" />
+                                                    <StackPanel Grid.Column="1"><TextBlock Text="{Binding Title, Mode=OneWay}" FontWeight="SemiBold"/><TextBlock Text="{Binding Detail, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,2,10,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2"><TextBlock Text="{Binding Risk, Mode=OneWay}" HorizontalAlignment="Right"/><TextBlock Text="{Binding Approval, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" HorizontalAlignment="Right"/></StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding RootCauseKind, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" VerticalAlignment="Center" />
+                                    <Button Grid.Column="1" Content="Reparar…" Click="Remediate_OnClick"
+                                            Style="{StaticResource WsgPrimaryButtonStyle}"
+                                            Visibility="{Binding RemediationVisibility, Mode=OneWay}"
+                                            ToolTip="Abre el flujo de remediación controlada (preflight, aprobación explícita, ejecución elevada y verificación)." />
+                                </Grid>
+
+                                <Border Background="#FFF4FBF5" BorderBrush="#FFCBEAD3" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                                    <StackPanel><TextBlock Text="Criterio de verificación" Foreground="{StaticResource WsgGoodBrush}" FontWeight="SemiBold"/><TextBlock Text="{Binding VerificationText, Mode=OneWay}" TextWrapping="Wrap" Foreground="#FF385144" Margin="0,3,0,0"/></StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Border Style="{StaticResource WsgCardStyle}" Background="#FFF4F8FF" BorderBrush="#FFD6E7FF">
+                <TextBlock Text="0.5.0 añade remediación controlada: para las causas raíz ComponentStoreCorruption y SystemFileIntegrity el operador puede ejecutar, tras preflight y aprobación explícita, DISM /RestoreHealth o SFC /scannow en un host elevado aislado, seguido de verificación. El resto de acciones sigue bloqueado y nada se ejecuta sin humano presente." Foreground="#FF2563A8" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

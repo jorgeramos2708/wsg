@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <RootNamespace>WindowsSystemGuardian.PrivilegedHost</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>WindowsSystemGuardian.PrivilegedHost</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WindowsSystemGuardian.Contracts\WindowsSystemGuardian.Contracts.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Core\WindowsSystemGuardian.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,101 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="WsgSidebarColor">#FF061D45</Color>
+    <Color x:Key="WsgSidebarSelectedColor">#FF0D5BC8</Color>
+    <Color x:Key="WsgPageColor">#FFF7F9FC</Color>
+    <Color x:Key="WsgCardColor">#FFFFFFFF</Color>
+    <Color x:Key="WsgBorderColor">#FFE3E8F0</Color>
+    <Color x:Key="WsgMutedColor">#FF68758A</Color>
+    <Color x:Key="WsgBlueColor">#FF1267E8</Color>
+    <Color x:Key="WsgGoodColor">#FF159447</Color>
+    <Color x:Key="WsgWarnColor">#FFF59E0B</Color>
+    <Color x:Key="WsgCriticalColor">#FFDC2626</Color>
+
+    <LinearGradientBrush x:Key="WsgSidebarBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FF071C3B" Offset="0" />
+        <GradientStop Color="#FF062B62" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="WsgSidebarSelectedBrush" Color="{StaticResource WsgSidebarSelectedColor}" />
+    <SolidColorBrush x:Key="WsgPageBrush" Color="{StaticResource WsgPageColor}" />
+    <SolidColorBrush x:Key="WsgCardBrush" Color="{StaticResource WsgCardColor}" />
+    <SolidColorBrush x:Key="WsgBorderBrush" Color="{StaticResource WsgBorderColor}" />
+    <SolidColorBrush x:Key="WsgMutedBrush" Color="{StaticResource WsgMutedColor}" />
+    <SolidColorBrush x:Key="WsgBlueBrush" Color="{StaticResource WsgBlueColor}" />
+    <SolidColorBrush x:Key="WsgGoodBrush" Color="{StaticResource WsgGoodColor}" />
+    <SolidColorBrush x:Key="WsgWarnBrush" Color="{StaticResource WsgWarnColor}" />
+    <SolidColorBrush x:Key="WsgCriticalBrush" Color="{StaticResource WsgCriticalColor}" />
+    <SolidColorBrush x:Key="WsgGoodSoftBrush" Color="#FFEAF7EE" />
+    <SolidColorBrush x:Key="WsgWarnSoftBrush" Color="#FFFFF5DF" />
+    <SolidColorBrush x:Key="WsgCriticalSoftBrush" Color="#FFFDEBEC" />
+    <SolidColorBrush x:Key="WsgBlueSoftBrush" Color="#FFEDF5FF" />
+
+    <Style x:Key="WsgCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource WsgCardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource WsgBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="13" />
+        <Setter Property="Padding" Value="18" />
+    </Style>
+
+    <Style x:Key="WsgNavigationItemStyle" TargetType="ListBoxItem">
+        <Setter Property="Foreground" Value="#FFE8EEF8" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Margin" Value="12,3" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="Root" Background="Transparent" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource WsgSidebarSelectedBrush}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="#332A7DE1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="WsgSectionTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#FF0F172A" />
+    </Style>
+
+    <Style x:Key="WsgCardTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#FF172033" />
+    </Style>
+
+    <Style x:Key="WsgMutedTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource WsgMutedBrush}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style x:Key="WsgPrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource WsgBlueBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="16,9" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style x:Key="WsgQuickActionButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#FFFAFCFF" />
+        <Setter Property="Foreground" Value="#FF172033" />
+        <Setter Property="BorderBrush" Value="{StaticResource WsgBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WindowsSystemGuardian.Contracts\WindowsSystemGuardian.Contracts.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Core\WindowsSystemGuardian.Core.csproj" />
+  </ItemGroup>
+</Project>

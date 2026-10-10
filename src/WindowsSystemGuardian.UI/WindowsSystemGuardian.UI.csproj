@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <StartupObject>WindowsSystemGuardian.UI.Program</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>WindowsSystemGuardian</AssemblyName>
+    <RootNamespace>WindowsSystemGuardian.UI</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WindowsSystemGuardian.Contracts\WindowsSystemGuardian.Contracts.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Core\WindowsSystemGuardian.Core.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Windows\WindowsSystemGuardian.Windows.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Persistence\WindowsSystemGuardian.Persistence.csproj" />
+    <PackageReference Include="ModernWpfUI" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+</Project>

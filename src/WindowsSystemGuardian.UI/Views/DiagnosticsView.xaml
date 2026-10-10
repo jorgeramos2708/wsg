@@ -1,0 +1,47 @@
+<UserControl x:Class="WindowsSystemGuardian.UI.Views.DiagnosticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30,26,30,34">
+            <TextBlock Text="Diagnóstico" Style="{StaticResource WsgSectionTitleStyle}" />
+            <TextBlock Text="Estado de la arquitectura de observación, atribución de recursos, correlación de incidentes y futura reparación controlada." Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,20" TextWrapping="Wrap" />
+
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}" BorderBrush="#FFB8E6C6">
+                    <StackPanel>
+                        <TextBlock Text="IMPLEMENTADO" FontWeight="SemiBold" Foreground="{StaticResource WsgGoodBrush}" />
+                        <TextBlock Text="✓ Evidence Engine e históricos&#x0a;✓ Event Log / Reliability&#x0a;✓ CPU, RAM y commit&#x0a;✓ Atribución CPU/RAM por proceso&#x0a;✓ Saturación de disco y red&#x0a;✓ Capacidad/tendencia por volumen&#x0a;✓ Salud conservadora de servicios&#x0a;✓ Findings / Incident / Root Cause&#x0a;✓ Salud del sistema de archivos / CHKDSK scan&#x0a;✓ DISM CheckHealth / ScanHealth&#x0a;✓ SFC verify-only&#x0a;✓ Windows Update / reinicio pendiente&#x0a;✓ Preparación WinRE y VSS"
+                                   Margin="0,12,0,0" LineHeight="25" Foreground="#FF374151" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}" BorderBrush="#FFBFD8FC">
+                    <StackPanel>
+                        <TextBlock Text="SIGUIENTE FASE: REMEDIACIÓN CONTROLADA" FontWeight="SemiBold" Foreground="{StaticResource WsgBlueBrush}" />
+                        <TextBlock Text="• PrivilegedHost aislado&#x0a;• ElevationHandler / UAC&#x0a;• Prerequisite validation&#x0a;• Risk / maintenance-window policy&#x0a;• Simulación y aprobación explícita&#x0a;• Acciones soportadas por Windows&#x0a;• Verification Engine posterior&#x0a;• Rollback/readiness cuando aplique"
+                                   Margin="0,12,0,0" TextWrapping="Wrap" LineHeight="25" Foreground="#FF374151" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Estado de observabilidad" Style="{StaticResource WsgCardTitleStyle}" />
+                        <TextBlock Text="{Binding Observability.CollectorSummary, Mode=OneWay}" Foreground="#FF172033" Margin="0,8,0,0" />
+                        <TextBlock Text="{Binding Observability.StatusText, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,5,0,0" />
+                        <TextBlock Text="{Binding Observability.PersistenceStatus, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,5,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}" Background="#FFFFFBEB" BorderBrush="#FFF5D48A">
+                    <StackPanel>
+                        <TextBlock Text="Principio de seguridad" FontWeight="SemiBold" Foreground="#FF9A6700" />
+                        <TextBlock Text="WSG puede observar y explicar mucho más de lo que puede modificar. Ningún hallazgo autoriza por sí solo una reparación y esta versión no ejecuta remediaciones." TextWrapping="Wrap" Foreground="#FF6B4A00" Margin="0,5,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

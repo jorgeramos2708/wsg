@@ -1,0 +1,49 @@
+<UserControl x:Class="WindowsSystemGuardian.UI.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30,26,30,34">
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Historial de observabilidad" Style="{StaticResource WsgSectionTitleStyle}" />
+                    <TextBlock Text="Evidencia y métricas retenidas localmente para establecer tendencias y correlación posterior." Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Actualizar" Click="Refresh_OnClick" Style="{StaticResource WsgPrimaryButtonStyle}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Border Style="{StaticResource WsgCardStyle}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="{Binding Summary, Mode=OneWay}" FontWeight="SemiBold" Foreground="#FF172033" />
+                    <TextBlock Text="{Binding DataPath, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    <TextBlock Text="{Binding DataSource, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" />
+                    <TextBlock Text="Retención predeterminada: 30 días / máximo aproximado 100 MB. WSG elimina únicamente sus propios archivos históricos dentro de esta ruta." Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource WsgCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Evidencias recientes" Style="{StaticResource WsgCardTitleStyle}" Margin="0,0,0,8" />
+                    <ItemsControl ItemsSource="{Binding Items, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="#FFE5EAF1" BorderThickness="0,0,0,1" Padding="0,9">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="125" /><ColumnDefinition Width="125" /><ColumnDefinition Width="*" /><ColumnDefinition Width="100" /></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Time, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Source, Mode=OneWay}" Foreground="#FF25324A" />
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{Binding Entity, Mode=OneWay}" FontWeight="SemiBold" Foreground="#FF172033" />
+                                            <TextBlock Text="{Binding Message, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" MaxHeight="34" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="3" Text="{Binding Severity, Mode=OneWay}" HorizontalAlignment="Right" Foreground="{Binding SeverityColor, Mode=OneWay}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

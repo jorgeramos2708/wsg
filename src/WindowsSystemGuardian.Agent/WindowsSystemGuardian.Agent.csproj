@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WindowsSystemGuardian.Contracts\WindowsSystemGuardian.Contracts.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Core\WindowsSystemGuardian.Core.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Windows\WindowsSystemGuardian.Windows.csproj" />
+    <ProjectReference Include="..\WindowsSystemGuardian.Persistence\WindowsSystemGuardian.Persistence.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
+  </ItemGroup>
+</Project>

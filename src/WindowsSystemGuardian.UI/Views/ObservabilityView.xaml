@@ -1,0 +1,84 @@
+<UserControl x:Class="WindowsSystemGuardian.UI.Views.ObservabilityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30,26,30,34">
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Estado del sistema" Style="{StaticResource WsgSectionTitleStyle}" />
+                    <TextBlock Text="Evidencia de bajo impacto, hallazgos explicables y estado de los colectores." Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Analizar ahora" Click="Refresh_OnClick" Style="{StaticResource WsgPrimaryButtonStyle}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Puntuación de salud" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding HealthScoreText, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" /><TextBlock Text="{Binding HealthLabel, Mode=OneWay}" Foreground="{Binding HealthColor, Mode=OneWay}" FontWeight="SemiBold" /></StackPanel></Border>
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="CPU" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding CpuPercentText, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" /><ProgressBar Minimum="0" Maximum="100" Value="{Binding CpuPercent, Mode=OneWay}" Height="7" /></StackPanel></Border>
+                <Border Grid.Column="4" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Memoria" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding MemoryPercentText, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" /><ProgressBar Minimum="0" Maximum="100" Value="{Binding MemoryPercent, Mode=OneWay}" Height="7" /></StackPanel></Border>
+                <Border Grid.Column="6" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Tiempo activo" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding UptimeText, Mode=OneWay}" FontSize="27" FontWeight="SemiBold" /><TextBlock Text="{Binding LastCapture, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" /></StackPanel></Border>
+            </Grid>
+
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.4*"/></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Commit" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding CommitPercentText, Mode=OneWay}" FontSize="28" FontWeight="SemiBold"/><ProgressBar Minimum="0" Maximum="100" Value="{Binding CommitPercent, Mode=OneWay}" Height="7"/></StackPanel></Border>
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Disco ocupado" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding DiskBusyPercentText, Mode=OneWay}" FontSize="28" FontWeight="SemiBold"/><ProgressBar Minimum="0" Maximum="100" Value="{Binding DiskBusyPercent, Mode=OneWay}" Height="7"/></StackPanel></Border>
+                <Border Grid.Column="4" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Red" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding NetworkUtilizationText, Mode=OneWay}" FontSize="28" FontWeight="SemiBold"/><ProgressBar Minimum="0" Maximum="100" Value="{Binding NetworkUtilizationPercent, Mode=OneWay}" Height="7"/></StackPanel></Border>
+                <Border Grid.Column="6" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Principales consumidores" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding TopCpuProcess, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,0"/><TextBlock Text="{Binding TopMemoryProcess, Mode=OneWay}" Foreground="#FF4B5563" TextWrapping="Wrap" Margin="0,4,0,0"/><TextBlock Text="{Binding ProcessCount, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0"/></StackPanel></Border>
+            </Grid>
+
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*" /><ColumnDefinition Width="14" /><ColumnDefinition Width="0.8*" /></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Hallazgos" Style="{StaticResource WsgCardTitleStyle}" />
+                        <TextBlock Text="Se generan a partir de evidencia y reglas determinísticas. DESCONOCIDO nunca se interpreta como seguro." Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,2,0,10" />
+                        <ItemsControl ItemsSource="{Binding Findings, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#FFE5EAF1" BorderThickness="0,0,0,1" Padding="0,10">
+                                        <StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Title, Mode=OneWay}" FontWeight="SemiBold" Foreground="#FF172033" TextWrapping="Wrap" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Severity, Mode=OneWay}" Foreground="{Binding SeverityColor, Mode=OneWay}" FontWeight="SemiBold" Margin="12,0,0,0" />
+                                            </Grid>
+                                            <TextBlock Text="{Binding Explanation, Mode=OneWay}" Foreground="#FF4B5563" TextWrapping="Wrap" Margin="0,5,0,0" />
+                                            <TextBlock Text="{Binding Recommendation, Mode=OneWay}" Foreground="#FF2563A8" TextWrapping="Wrap" Margin="0,5,0,0" />
+                                            <TextBlock Text="{Binding Time, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Colectores" Style="{StaticResource WsgCardTitleStyle}" />
+                        <TextBlock Text="El scheduler ejecuta cada módulo según su costo e intervalo recomendado." Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,2,0,10" />
+                        <ItemsControl ItemsSource="{Binding Collectors, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#FFE5EAF1" BorderThickness="0,0,0,1" Padding="0,9">
+                                        <StackPanel>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{Binding Name, Mode=OneWay}" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="{Binding Status, Mode=OneWay}" Foreground="{StaticResource WsgBlueBrush}" /></Grid>
+                                            <TextBlock Text="{Binding Detail, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding Cost, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource WsgCardStyle}" Margin="0,14,0,0" Background="#FFFFFBEB" BorderBrush="#FFF5D48A">
+                <TextBlock Text="WSG observa recursos, atribuye consumo a procesos y genera incidentes correlacionados. La remediación continúa bloqueada: ninguna recomendación modifica Windows automáticamente." Foreground="#FF6B4A00" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
