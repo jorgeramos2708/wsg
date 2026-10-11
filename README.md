@@ -1,10 +1,20 @@
-# Windows System Guardian 0.7.0
+# Windows System Guardian 0.8.0
 
 **Windows System Guardian (WSG)** es una herramienta Windows orientada a:
 
 > **observar → detectar → correlacionar → explicar → recomendar → reparar de forma controlada → verificar**
 
-La versión **0.7.0 — Live Monitoring** añade monitoreo de recursos en tiempo real en el Dashboard: CPU, RAM y commit se actualizan cada 2 segundos (`DispatcherTimer` + `GetSystemTimes`/`GlobalMemoryStatusEx`), **solo lectura del sistema y sin escrituras al store de evidencia**. Todo lo de 0.6.0 (3 acciones de remediación controlada) permanece sin cambios.
+La versión **0.8.0 — Integrated Verification** cierra el ciclo reparar→verificar: tras una remediación exitosa, el diálogo **ejecuta él mismo los diagnósticos de verificación declarados por el incidente** (pipeline read-only existente) y muestra el estado actualizado según el ciclo de vida (`En verificación` → `Resuelto` con dos capturas limpias). Live monitoring y las 3 acciones de remediación permanecen sin cambios.
+
+## 0.8.0 — Integrated Verification
+
+- Tras una remediación exitosa, el diálogo ejecuta **exactamente los collectors de verificación declarados por el incidente** vía `ObservabilityService.CaptureCollectorsAsync` (pipeline completo: evidencia → hallazgos → incidentes → ciclo de vida → persistencia).
+- `RemediationVerificationService.ResolveUpdatedIncident` resuelve el estado actualizado por fingerprint sin inventar transiciones.
+- Botón "Verificar de nuevo" para repetir la verificación sin relanzar la remediación.
+- Sin duplicación: el conteo de capturas limpias sigue en `IncidentLifecycleTracker`.
+- Gate de QA: **0 errores, 0 advertencias, 179/179 pruebas y 3 auditorías PASS**.
+
+## 0.7.0 — Live Monitoring
 
 ## 0.7.0 — Live Monitoring
 

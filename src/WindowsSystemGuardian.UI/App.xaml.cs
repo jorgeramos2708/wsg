@@ -118,7 +118,13 @@ public partial class App : Application
         services.AddSingleton<ApprovalGate>();
         services.AddSingleton<RemediationEngine>();
         services.AddSingleton<RemediationVerificationService>();
-        services.AddTransient<RemediationViewModel>();
+        services.AddTransient<RemediationViewModel>(sp => new RemediationViewModel(
+            sp.GetRequiredService<RemediationPolicyEngine>(),
+            sp.GetRequiredService<PreflightEngine>(),
+            sp.GetRequiredService<IRemediationPreflightProbe>(),
+            sp.GetRequiredService<RemediationEngine>(),
+            sp.GetRequiredService<ObservabilityService>(),
+            sp.GetRequiredService<RemediationVerificationService>()));
 
         // Monitoreo en tiempo real 0.7.0: el collector de rendimiento (solo lectura) sin escrituras al store.
         services.AddSingleton<LiveMonitorViewModel>(sp => new LiveMonitorViewModel(

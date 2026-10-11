@@ -13,6 +13,12 @@ public partial class RemediationView : Window
             await vm.ExecuteAsync();
     }
 
+    private async void Verify_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is RemediationViewModel vm)
+            await vm.VerifyNowAsync();
+    }
+
     private void Approval_OnChecked(object sender, RoutedEventArgs e)
     {
         if (DataContext is RemediationViewModel vm)

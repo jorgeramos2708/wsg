@@ -1,6 +1,7 @@
 using WindowsSystemGuardian.Contracts.Incidents;
 using WindowsSystemGuardian.Contracts.Observability;
 using WindowsSystemGuardian.Contracts.Remediation;
+using WindowsSystemGuardian.Core.Incidents;
 
 namespace WindowsSystemGuardian.Core.Remediation;
 
@@ -26,6 +27,24 @@ public sealed class RemediationVerificationService
     /// </summary>
     public IReadOnlyList<string> GetVerificationCollectorNames(Incident incident) =>
         incident.VerificationCollectors ?? Array.Empty<string>();
+
+    /// <summary>
+    /// Resuelve el incidente actualizado tras una captura de verificación: busca por
+    /// fingerprint el estado más reciente; si no aparece (no se emitió transición),
+    /// devuelve el original sin inventar estados.
+    /// </summary>
+    public static Incident ResolveUpdatedIncident(
+        Incident original,
+        IReadOnlyList<Incident> currentIncidents)
+    {
+        ArgumentNullException.ThrowIfNull(original);
+        ArgumentNullException.ThrowIfNull(currentIncidents);
+
+        return currentIncidents
+            .Where(i => string.Equals(i.Fingerprint, original.Fingerprint, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(IncidentLifecycleTracker.StateTimestamp)
+            .FirstOrDefault() ?? original;
+    }
 
     public RemediationVerificationResult Evaluate(
         RemediationOutcome outcome,
