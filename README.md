@@ -1,4 +1,4 @@
-# Windows System Guardian 0.11.0
+# Windows System Guardian 0.12.0
 
 **Windows System Guardian (WSG)** es una herramienta Windows orientada a:
 
@@ -226,5 +226,6 @@ dotnet run --project .\src\WindowsSystemGuardian.UI\WindowsSystemGuardian.UI.csp
 - smoke test automatizado en VM.
 
 La ampliación no se habilitará hasta que 0.5.0 pase build, tests, auditorías, smoke test y QA runtime en Windows.
+
 
 
