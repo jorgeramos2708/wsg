@@ -129,9 +129,11 @@ public partial class App : Application
         // Monitoreo en tiempo real 0.7.0/0.9.0: el collector de rendimiento (solo
         // lectura) sin escrituras al store, y muestreo de consumidores significativos.
         services.AddSingleton<LiveProcessSampler>();
+        services.AddSingleton<LiveDiskSampler>();
         services.AddSingleton<LiveMonitorViewModel>(sp => new LiveMonitorViewModel(
             sp.GetServices<IObservabilityCollector>().First(c => c.Name == "Rendimiento"),
-            sp.GetRequiredService<LiveProcessSampler>()));
+            sp.GetRequiredService<LiveProcessSampler>(),
+            sp.GetRequiredService<LiveDiskSampler>()));
 
         services.AddSingleton<SystemStateViewModel>();
         services.AddSingleton<ObservabilityViewModel>();

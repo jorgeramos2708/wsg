@@ -59,15 +59,43 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="4">
-                            <Grid>
+                            <Grid ToolTipService.ShowOnDisabled="True">
+                                <Grid.ToolTip>
+                                    <TextBlock>
+                                        <Run Text="Memoria comprometida (commit): memoria virtual que Windows ha garantizado a los procesos, respaldada por RAM + archivo de paginación." />
+                                        <LineBreak />
+                                        <Run Text="Fuente: GlobalMemoryStatusEx (TotalPageFile/AvailPageFile) — sysinfoapi.h." />
+                                    </TextBlock>
+                                </Grid.ToolTip>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                <TextBlock Text="Commit" FontWeight="SemiBold" />
+                                <TextBlock Text="Memoria comprometida" FontWeight="SemiBold" />
                                 <TextBlock Grid.Column="1" Text="{Binding Live.CommitText, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                             </Grid>
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding Live.CommitPercent, Mode=OneWay}" Height="8" Margin="0,6,0,0" />
                         </StackPanel>
                     </Grid>
-                    <TextBlock Text="{Binding Live.LastUpdatedText, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,10,0,0" />
+
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Discos" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding Live.DiskThroughputText, Mode=OneWay}" FontWeight="SemiBold" />
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Live.DiskBusyPercent, Mode=OneWay}" Height="8" Margin="0,6,0,0" />
+                            <TextBlock Text="{Binding Live.LastUpdatedText, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,6,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Tiempo activo" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Live.UptimeText, Mode=OneWay}" FontSize="20" FontWeight="SemiBold" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Grid>
 
                     <TextBlock Text="Principales consumidores (procesos y servicios)" FontWeight="SemiBold" FontSize="14" Margin="0,14,0,4" />
                     <ItemsControl ItemsSource="{Binding Live.TopProcesses, Mode=OneWay}">
@@ -162,50 +190,10 @@
             <Grid Margin="0,0,0,18">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.05*" /><ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="1.12*" /><ColumnDefinition Width="12" />
                     <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                            <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource WsgBlueSoftBrush}">
-                                <TextBlock Text="&#xE95E;" FontFamily="Segoe Fluent Icons" Foreground="{StaticResource WsgBlueBrush}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Margin="10,0,0,0">
-                                <TextBlock Text="Salud del sistema" Style="{StaticResource WsgCardTitleStyle}" />
-                                <TextBlock Text="Métricas de bajo impacto" Style="{StaticResource WsgMutedTextStyle}" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <Grid Margin="0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="56" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="CPU" Foreground="#FF25324A" FontWeight="SemiBold" />
-                            <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding Observability.CpuPercent, Mode=OneWay}" Height="7" Margin="8,5" />
-                            <TextBlock Grid.Column="2" Text="{Binding Observability.CpuPercentText, Mode=OneWay}" HorizontalAlignment="Right" Foreground="#FF25324A" />
-                        </Grid>
-                        <Grid Margin="0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="56" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="Memoria" Foreground="#FF25324A" FontWeight="SemiBold" />
-                            <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding Observability.MemoryPercent, Mode=OneWay}" Height="7" Margin="8,5" />
-                            <TextBlock Grid.Column="2" Text="{Binding Observability.MemoryPercentText, Mode=OneWay}" HorizontalAlignment="Right" Foreground="#FF25324A" />
-                        </Grid>
-                        <Grid Margin="0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="56" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="Almacenamiento" Foreground="#FF25324A" FontWeight="SemiBold" />
-                            <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding System.StorageScore, Mode=OneWay}" Height="7" Margin="8,5" />
-                            <TextBlock Grid.Column="2" Text="{Binding System.StorageScoreText, Mode=OneWay}" HorizontalAlignment="Right" Foreground="#FF25324A" />
-                        </Grid>
-                        <Grid Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="Tiempo activo" Foreground="#FF25324A" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="1" Text="{Binding Observability.UptimeText, Mode=OneWay}" HorizontalAlignment="Right" Foreground="{StaticResource WsgGoodBrush}" />
-                        </Grid>
-                        <Button Content="Ver estado completo" Tag="observability" Click="Navigate_OnClick" Style="{StaticResource WsgQuickActionButtonStyle}" Margin="0,15,0,0" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                             <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource WsgBlueSoftBrush}">
@@ -246,7 +234,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="4" Style="{StaticResource WsgCardStyle}">
+                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                             <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource WsgGoodSoftBrush}">

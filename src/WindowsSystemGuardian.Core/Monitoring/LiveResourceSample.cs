@@ -12,7 +12,8 @@ public sealed record LiveResourceSample(
     double MemoryLoadPercent,
     double MemoryTotalBytes,
     double MemoryAvailableBytes,
-    double CommitPercent);
+    double CommitPercent,
+    double UptimeSeconds);
 
 /// <summary>
 /// Mapea el resultado del collector de rendimiento a una muestra viva. Fail-closed:
@@ -36,8 +37,9 @@ public static class LiveResourceSampleReader
         var memoryTotal = Read("system.memory.total_bytes");
         var memoryAvailable = Read("system.memory.available_bytes");
         var commit = Read("system.commit.percent");
+        var uptime = Read("system.uptime.seconds");
 
-        if (cpu is null || memoryLoad is null || memoryTotal is null || memoryAvailable is null || commit is null)
+        if (cpu is null || memoryLoad is null || memoryTotal is null || memoryAvailable is null || commit is null || uptime is null)
             return null;
 
         return new LiveResourceSample(
@@ -46,6 +48,7 @@ public static class LiveResourceSampleReader
             memoryLoad.Value,
             memoryTotal.Value,
             memoryAvailable.Value,
-            commit.Value);
+            commit.Value,
+            uptime.Value);
     }
 }

@@ -13,7 +13,8 @@ public sealed class LiveResourceSampleReaderTests
             new("m2", DateTime.UtcNow, EvidenceCategory.Performance, "Memoria", "system.memory.percent", load, "%"),
             new("m3", DateTime.UtcNow, EvidenceCategory.Performance, "Memoria", "system.memory.total_bytes", total, "bytes"),
             new("m4", DateTime.UtcNow, EvidenceCategory.Performance, "Memoria", "system.memory.available_bytes", avail, "bytes"),
-            new("m5", DateTime.UtcNow, EvidenceCategory.Performance, "Memoria", "system.commit.percent", commit, "%")
+            new("m5", DateTime.UtcNow, EvidenceCategory.Performance, "Memoria", "system.commit.percent", commit, "%"),
+            new("m6", DateTime.UtcNow, EvidenceCategory.Performance, "Sistema", "system.uptime.seconds", 86_400, "s")
         ]);
 
     [Fact]
@@ -27,6 +28,7 @@ public sealed class LiveResourceSampleReaderTests
         Assert.Equal(17_000_000_000, sample.MemoryTotalBytes);
         Assert.Equal(9_000_000_000, sample.MemoryAvailableBytes);
         Assert.Equal(61.5, sample.CommitPercent);
+        Assert.Equal(86_400, sample.UptimeSeconds);
     }
 
     [Fact]

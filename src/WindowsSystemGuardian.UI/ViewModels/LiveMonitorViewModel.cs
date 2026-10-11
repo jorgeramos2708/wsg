@@ -39,17 +39,20 @@ public sealed class LiveMonitorViewModel : ObservableObject
 {
     private readonly IObservabilityCollector _performanceCollector;
     private readonly LiveProcessSampler _processSampler;
+    private readonly LiveDiskSampler _diskSampler;
     private readonly DispatcherTimer _timer;
     private readonly object _captureSync = new();
     private bool _capturing;
     private bool _running;
     private LiveResourceSample? _sample;
+    private LiveDiskSample? _diskSample;
     private string _statusText = "Monitoreo detenido.";
 
-    public LiveMonitorViewModel(IObservabilityCollector performanceCollector, LiveProcessSampler processSampler)
+    public LiveMonitorViewModel(IObservabilityCollector performanceCollector, LiveProcessSampler processSampler, LiveDiskSampler diskSampler)
     {
         _performanceCollector = performanceCollector;
         _processSampler = processSampler;
+        _diskSampler = diskSampler;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _timer.Tick += async (_, _) => await TickAsync();
     }
@@ -72,12 +75,38 @@ public sealed class LiveMonitorViewModel : ObservableObject
     public double CpuPercent => _sample?.CpuPercent ?? 0;
     public double MemoryLoadPercent => _sample?.MemoryLoadPercent ?? 0;
     public double CommitPercent => _sample?.CommitPercent ?? 0;
+    public double DiskBusyPercent => _diskSample?.BusyPercent ?? 0;
 
     public string CpuText => _sample is null ? "—" : $"{_sample.CpuPercent:0} %";
     public string MemoryText => _sample is null
         ? "—"
         : $"{(_sample.MemoryTotalBytes - _sample.MemoryAvailableBytes) / 1073741824.0:0.0} GB de {_sample.MemoryTotalBytes / 1073741824.0:0.0} GB ({_sample.MemoryLoadPercent:0} %)";
-    public string CommitText => _sample is null ? "—" : $"{_sample.CommitPercent:0} % del límite";
+
+    /// <summary>
+    /// "Commit" es la memoria virtual comprometida de Windows: la suma de memoria que
+    /// el sistema ha garantizado a los procesos (respaldada por RAM + archivo de
+    /// paginación). El límite es RAM + pagefile. Documentado en GlobalMemoryStatusEx
+    /// (TotalPageFile/AvailPageFile, sysinfoapi.h), que es la fuente del collector.
+    /// </summary>
+    public string CommitText => _sample is null
+        ? "—"
+        : $"{_sample.CommitPercent:0} % del límite (RAM + archivo de paginación)";
+
+    public double DiskThroughputBytesPerSec => _diskSample?.BytesPerSec ?? 0;
+    public string DiskThroughputText => (_diskSample?.BytesPerSec) switch
+    {
+        null or <= 0 => "—",
+        var bps when bps.Value / 1048576.0 >= 1 => $"{bps.Value / 1048576.0:0.0} MB/s",
+        var bps => $"{bps.Value / 1024.0:0} KB/s"
+    };
+
+    public string UptimeText => _sample is null
+        ? "—"
+        : TimeSpan.FromSeconds(_sample.UptimeSeconds) switch
+        {
+            { TotalHours: var h } span when h >= 24 => $"{(int)(h / 24)} d {span.Hours} h",
+            { TotalHours: var h } => $"{(int)h} h {Math.Floor(_sample.UptimeSeconds % 3600 / 60)} min"
+        };
 
     public string LastUpdatedText => _sample is null
         ? "—"
@@ -141,6 +170,9 @@ public sealed class LiveMonitorViewModel : ObservableObject
             var topProcesses = await Task.Run(() => _processSampler.Sample(
                 Environment.ProcessorCount, topN: 5));
 
+            // 0.10.0: actividad agregada de discos (datos formateados del proveedor WMI).
+            _diskSample = await Task.Run(() => _diskSampler.Sample());
+
             if (sample is null)
             {
                 StatusText = "Muestra no disponible; se reintenta en el próximo tick.";
@@ -157,6 +189,9 @@ public sealed class LiveMonitorViewModel : ObservableObject
             OnPropertyChanged(nameof(MemoryText));
             OnPropertyChanged(nameof(CommitPercent));
             OnPropertyChanged(nameof(CommitText));
+            OnPropertyChanged(nameof(DiskBusyPercent));
+            OnPropertyChanged(nameof(DiskThroughputText));
+            OnPropertyChanged(nameof(UptimeText));
             OnPropertyChanged(nameof(LastUpdatedText));
         }
         catch (OperationCanceledException)
