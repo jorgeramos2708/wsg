@@ -28,12 +28,24 @@ public sealed class LiveProcessItemViewModel(
     public string SignificanceMark => significant ? "▲" : string.Empty;
 }
 
+/// <summary>Fila de capacidad por unidad de disco en vivo.</summary>
+public sealed class LiveDiskVolumeViewModel(string letter, double totalBytes, double freeBytes)
+{
+    public string Letter => letter;
+    public double UsedPercent => totalBytes <= 0
+        ? 0
+        : Math.Clamp((totalBytes - freeBytes) / totalBytes * 100, 0, 100);
+    public string UsedText => $"{(totalBytes - freeBytes) / 1073741824.0:0} GB usados";
+    public string FreeText => $"{freeBytes / 1073741824.0:0.#} GB libres";
+}
+
 /// <summary>
 /// Monitoreo de recursos en tiempo real del Dashboard. DispatcherTimer (hilo de UI,
-/// según la documentación de WPF) muestrea el collector de rendimiento cada 2 segundos
-/// y publica las métricas para bindin OneWay. Las muestras vivas son de solo lectura:
-/// NO se escriben en el store de evidencia (la cadencia de evidencia es la del
-/// pipeline normal). Busy-guard: si la captura anterior sigue en curso, el tick se salta.
+/// según la documentación de WPF) muestrea cada 2 segundos: rendimiento del sistema
+/// (CPU/RAM/commit/uptime), consumidores significativos (procesos y servicios) y
+/// actividad/capacidad de discos. Publica históricos para las sparklines (0.11.0).
+/// Las muestras vivas son de solo lectura: NO se escriben en el store de evidencia.
+/// Busy-guard: si la captura anterior sigue en curso, el tick se salta.
 /// </summary>
 public sealed class LiveMonitorViewModel : ObservableObject
 {
@@ -42,11 +54,15 @@ public sealed class LiveMonitorViewModel : ObservableObject
     private readonly LiveDiskSampler _diskSampler;
     private readonly DispatcherTimer _timer;
     private readonly object _captureSync = new();
+    private readonly List<double> _cpuHistory = [];
+    private readonly List<double> _memoryHistory = [];
+    private readonly List<double> _commitHistory = [];
+    private readonly List<double> _diskHistory = [];
     private bool _capturing;
     private bool _running;
     private LiveResourceSample? _sample;
     private LiveDiskSample? _diskSample;
-    private string _statusText = "Monitoreo detenido.";
+    private string _statusText = string.Empty;
 
     public LiveMonitorViewModel(IObservabilityCollector performanceCollector, LiveProcessSampler processSampler, LiveDiskSampler diskSampler)
     {
@@ -58,6 +74,13 @@ public sealed class LiveMonitorViewModel : ObservableObject
     }
 
     public ObservableCollection<LiveProcessItemViewModel> TopProcesses { get; } = [];
+    public ObservableCollection<LiveDiskVolumeViewModel> DiskVolumes { get; } = [];
+
+    /// <summary>Histórico para las sparklines. Una lista nueva por tick activa el re-render del control.</summary>
+    public IReadOnlyList<double> CpuHistory => [.. _cpuHistory];
+    public IReadOnlyList<double> MemoryHistory => [.. _memoryHistory];
+    public IReadOnlyList<double> CommitHistory => [.. _commitHistory];
+    public IReadOnlyList<double> DiskHistory => [.. _diskHistory];
 
     public bool Running
     {
@@ -80,19 +103,17 @@ public sealed class LiveMonitorViewModel : ObservableObject
     public string CpuText => _sample is null ? "—" : $"{_sample.CpuPercent:0} %";
     public string MemoryText => _sample is null
         ? "—"
-        : $"{(_sample.MemoryTotalBytes - _sample.MemoryAvailableBytes) / 1073741824.0:0.0} GB de {_sample.MemoryTotalBytes / 1073741824.0:0.0} GB ({_sample.MemoryLoadPercent:0} %)";
+        : $"{(_sample.MemoryTotalBytes - _sample.MemoryAvailableBytes) / 1073741824.0:0.0} GB de {_sample.MemoryTotalBytes / 1073741824.0:0.0} GB";
 
     /// <summary>
-    /// "Commit" es la memoria virtual comprometida de Windows: la suma de memoria que
-    /// el sistema ha garantizado a los procesos (respaldada por RAM + archivo de
-    /// paginación). El límite es RAM + pagefile. Documentado en GlobalMemoryStatusEx
-    /// (TotalPageFile/AvailPageFile, sysinfoapi.h), que es la fuente del collector.
+    /// "Memoria comprometida" (commit) es la memoria virtual que Windows ha garantizado
+    /// a los procesos, respaldada por RAM + archivo de paginación; el límite es
+    /// RAM + pagefile (GlobalMemoryStatusEx, TotalPageFile/AvailPageFile, sysinfoapi.h).
     /// </summary>
     public string CommitText => _sample is null
         ? "—"
         : $"{_sample.CommitPercent:0} % del límite (RAM + archivo de paginación)";
 
-    public double DiskThroughputBytesPerSec => _diskSample?.BytesPerSec ?? 0;
     public string DiskThroughputText => (_diskSample?.BytesPerSec) switch
     {
         null or <= 0 => "—",
@@ -128,7 +149,7 @@ public sealed class LiveMonitorViewModel : ObservableObject
             return;
 
         Running = true;
-        StatusText = "Monitoreo en vivo cada 2 segundos.";
+        StatusText = string.Empty;
         _timer.Start();
         _ = TickAsync();
     }
@@ -140,7 +161,6 @@ public sealed class LiveMonitorViewModel : ObservableObject
 
         _timer.Stop();
         Running = false;
-        StatusText = "Monitoreo detenido.";
     }
 
     public void Toggle()
@@ -165,24 +185,30 @@ public sealed class LiveMonitorViewModel : ObservableObject
             var result = await _performanceCollector.CollectAsync();
             var sample = LiveResourceSampleReader.FromCollectorResult(result);
 
-            // 0.9.0: principales consumidores (procesos y servicios que alojan) en
-            // segundo plano; la lista se actualiza con la misma cadencia del tick.
+            // Consumidores significativos (procesos y servicios que alojan) y discos,
+            // en segundo plano; se actualizan con la misma cadencia del tick.
             var topProcesses = await Task.Run(() => _processSampler.Sample(
                 Environment.ProcessorCount, topN: 5));
-
-            // 0.10.0: actividad agregada de discos (datos formateados del proveedor WMI).
             _diskSample = await Task.Run(() => _diskSampler.Sample());
 
             if (sample is null)
             {
                 StatusText = "Muestra no disponible; se reintenta en el próximo tick.";
                 ReplaceTopProcesses(topProcesses);
+                ReplaceDiskVolumes(_diskSample);
                 return;
             }
 
             _sample = sample;
-            StatusText = "Monitoreo en vivo cada 2 segundos.";
+            StatusText = string.Empty;
+            AppendHistory(_cpuHistory, sample.CpuPercent);
+            AppendHistory(_memoryHistory, sample.MemoryLoadPercent);
+            AppendHistory(_commitHistory, sample.CommitPercent);
+            if (_diskSample?.BusyPercent is { } busy)
+                AppendHistory(_diskHistory, busy);
+
             ReplaceTopProcesses(topProcesses);
+            ReplaceDiskVolumes(_diskSample);
             OnPropertyChanged(nameof(CpuPercent));
             OnPropertyChanged(nameof(CpuText));
             OnPropertyChanged(nameof(MemoryLoadPercent));
@@ -193,6 +219,10 @@ public sealed class LiveMonitorViewModel : ObservableObject
             OnPropertyChanged(nameof(DiskThroughputText));
             OnPropertyChanged(nameof(UptimeText));
             OnPropertyChanged(nameof(LastUpdatedText));
+            OnPropertyChanged(nameof(CpuHistory));
+            OnPropertyChanged(nameof(MemoryHistory));
+            OnPropertyChanged(nameof(CommitHistory));
+            OnPropertyChanged(nameof(DiskHistory));
         }
         catch (OperationCanceledException)
         {
@@ -211,6 +241,13 @@ public sealed class LiveMonitorViewModel : ObservableObject
         }
     }
 
+    private static void AppendHistory(List<double> history, double value)
+    {
+        history.Add(value);
+        if (history.Count > MonitoringThresholds.HistoryCapacity)
+            history.RemoveRange(0, history.Count - MonitoringThresholds.HistoryCapacity);
+    }
+
     private void ReplaceTopProcesses(IReadOnlyList<LiveProcessConsumption> topProcesses)
     {
         TopProcesses.Clear();
@@ -222,5 +259,12 @@ public sealed class LiveMonitorViewModel : ObservableObject
                 consumption.WorkingSetBytes,
                 consumption.ServiceNames,
                 consumption.CpuSignificant || consumption.MemorySignificant));
+    }
+
+    private void ReplaceDiskVolumes(LiveDiskSample? diskSample)
+    {
+        DiskVolumes.Clear();
+        foreach (var volume in diskSample?.Capacity ?? [])
+            DiskVolumes.Add(new LiveDiskVolumeViewModel(volume.DriveLetter, volume.TotalBytes, volume.FreeBytes));
     }
 }

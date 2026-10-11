@@ -6,10 +6,11 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>0.10.0</Version>
-    <AssemblyVersion>0.10.0.0</AssemblyVersion>
-    <FileVersion>0.10.0.0</FileVersion>
-    <InformationalVersion>0.10.0-live-disks</InformationalVersion>
+    <Version>0.11.0</Version>
+    <AssemblyVersion>0.11.0.0</AssemblyVersion>
+    <FileVersion>0.11.0.0</FileVersion>
+    <InformationalVersion>0.11.0-live-sparklines</InformationalVersion>
   </PropertyGroup>
 </Project>
+
 
