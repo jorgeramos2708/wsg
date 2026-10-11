@@ -1,9 +1,32 @@
+using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using WindowsSystemGuardian.Contracts.Observability;
 using WindowsSystemGuardian.Core.Abstractions;
 using WindowsSystemGuardian.Core.Monitoring;
+using WindowsSystemGuardian.Windows.Observability;
 
 namespace WindowsSystemGuardian.UI.ViewModels;
+
+/// <summary>Fila de la lista de principales consumidores (proceso/servicio) en vivo.</summary>
+public sealed class LiveProcessItemViewModel(
+    string name,
+    int processId,
+    double cpuPercent,
+    long workingSetBytes,
+    IReadOnlyList<string> serviceNames,
+    bool significant)
+{
+    public string Name => serviceNames.Count == 0
+        ? $"{name} (PID {processId})"
+        : $"{name} (PID {processId}) · {string.Join(", ", serviceNames)}";
+    public double CpuPercent => cpuPercent;
+    public string CpuText => $"{cpuPercent:0.#} %";
+    public string MemoryText => workingSetBytes / 1073741824.0 >= 1
+        ? $"{workingSetBytes / 1073741824.0:0.00} GB"
+        : $"{workingSetBytes / 1048576.0:0} MB";
+    public bool Significant => significant;
+    public string SignificanceMark => significant ? "▲" : string.Empty;
+}
 
 /// <summary>
 /// Monitoreo de recursos en tiempo real del Dashboard. DispatcherTimer (hilo de UI,
@@ -15,6 +38,7 @@ namespace WindowsSystemGuardian.UI.ViewModels;
 public sealed class LiveMonitorViewModel : ObservableObject
 {
     private readonly IObservabilityCollector _performanceCollector;
+    private readonly LiveProcessSampler _processSampler;
     private readonly DispatcherTimer _timer;
     private readonly object _captureSync = new();
     private bool _capturing;
@@ -22,12 +46,15 @@ public sealed class LiveMonitorViewModel : ObservableObject
     private LiveResourceSample? _sample;
     private string _statusText = "Monitoreo detenido.";
 
-    public LiveMonitorViewModel(IObservabilityCollector performanceCollector)
+    public LiveMonitorViewModel(IObservabilityCollector performanceCollector, LiveProcessSampler processSampler)
     {
         _performanceCollector = performanceCollector;
+        _processSampler = processSampler;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _timer.Tick += async (_, _) => await TickAsync();
     }
+
+    public ObservableCollection<LiveProcessItemViewModel> TopProcesses { get; } = [];
 
     public bool Running
     {
@@ -108,14 +135,22 @@ public sealed class LiveMonitorViewModel : ObservableObject
         {
             var result = await _performanceCollector.CollectAsync();
             var sample = LiveResourceSampleReader.FromCollectorResult(result);
+
+            // 0.9.0: principales consumidores (procesos y servicios que alojan) en
+            // segundo plano; la lista se actualiza con la misma cadencia del tick.
+            var topProcesses = await Task.Run(() => _processSampler.Sample(
+                Environment.ProcessorCount, topN: 5));
+
             if (sample is null)
             {
                 StatusText = "Muestra no disponible; se reintenta en el próximo tick.";
+                ReplaceTopProcesses(topProcesses);
                 return;
             }
 
             _sample = sample;
             StatusText = "Monitoreo en vivo cada 2 segundos.";
+            ReplaceTopProcesses(topProcesses);
             OnPropertyChanged(nameof(CpuPercent));
             OnPropertyChanged(nameof(CpuText));
             OnPropertyChanged(nameof(MemoryLoadPercent));
@@ -139,5 +174,18 @@ public sealed class LiveMonitorViewModel : ObservableObject
                 _capturing = false;
             }
         }
+    }
+
+    private void ReplaceTopProcesses(IReadOnlyList<LiveProcessConsumption> topProcesses)
+    {
+        TopProcesses.Clear();
+        foreach (var consumption in topProcesses)
+            TopProcesses.Add(new LiveProcessItemViewModel(
+                consumption.Name,
+                consumption.ProcessId,
+                consumption.CpuPercent,
+                consumption.WorkingSetBytes,
+                consumption.ServiceNames,
+                consumption.CpuSignificant || consumption.MemorySignificant));
     }
 }

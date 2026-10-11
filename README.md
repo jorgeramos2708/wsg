@@ -1,10 +1,20 @@
-# Windows System Guardian 0.8.0
+# Windows System Guardian 0.9.0
 
 **Windows System Guardian (WSG)** es una herramienta Windows orientada a:
 
 > **observar → detectar → correlacionar → explicar → recomendar → reparar de forma controlada → verificar**
 
-La versión **0.8.0 — Integrated Verification** cierra el ciclo reparar→verificar: tras una remediación exitosa, el diálogo **ejecuta él mismo los diagnósticos de verificación declarados por el incidente** (pipeline read-only existente) y muestra el estado actualizado según el ciclo de vida (`En verificación` → `Resuelto` con dos capturas limpias). Live monitoring y las 3 acciones de remediación permanecen sin cambios.
+La versión **0.9.0 — Significant Consumers** amplía el monitoreo en vivo: además de CPU/RAM/commit del sistema, el Dashboard muestra en tiempo real los **procesos y servicios que consumen significativamente CPU y memoria** (top por CPU y por memoria, con atribución de servicios alojados vía WMI `Win32_Service`). Solo lectura; sin escrituras al store. Remediación y verificación integradas de 0.5.0-0.8.0 sin cambios.
+
+## 0.9.0 — Significant Consumers
+
+- Lista de **principales consumidores** (máx. 10 filas) en la tarjeta "Monitoreo en vivo": proceso (PID), % CPU, memoria, y los servicios de Windows que aloja cuando aplica (p. ej. `svchost.exe · wuauserv, bits`).
+- CPU por proceso = delta de `TotalProcessorTime` / tiempo transcurrido / núcleos lógicos (`System.Diagnostics.Process`, API oficial); memoria = `WorkingSet64`.
+- **Significancia**: CPU ≥ 10 % por núcleo o memoria ≥ 200 MB (marcador ▲); la clasificación vive en Core (`ProcessLiveClassifier`) y está probada.
+- Atribución de servicios vía WMI `Win32_Service` (ProcessId), con caché de 30 s.
+- Gate de QA: **0 errores, 0 advertencias, pruebas en verde y 3 auditorías PASS**.
+
+## 0.8.0 — Integrated Verification
 
 ## 0.8.0 — Integrated Verification
 

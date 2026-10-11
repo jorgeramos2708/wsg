@@ -126,9 +126,12 @@ public partial class App : Application
             sp.GetRequiredService<ObservabilityService>(),
             sp.GetRequiredService<RemediationVerificationService>()));
 
-        // Monitoreo en tiempo real 0.7.0: el collector de rendimiento (solo lectura) sin escrituras al store.
+        // Monitoreo en tiempo real 0.7.0/0.9.0: el collector de rendimiento (solo
+        // lectura) sin escrituras al store, y muestreo de consumidores significativos.
+        services.AddSingleton<LiveProcessSampler>();
         services.AddSingleton<LiveMonitorViewModel>(sp => new LiveMonitorViewModel(
-            sp.GetServices<IObservabilityCollector>().First(c => c.Name == "Rendimiento")));
+            sp.GetServices<IObservabilityCollector>().First(c => c.Name == "Rendimiento"),
+            sp.GetRequiredService<LiveProcessSampler>()));
 
         services.AddSingleton<SystemStateViewModel>();
         services.AddSingleton<ObservabilityViewModel>();
