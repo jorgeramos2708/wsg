@@ -7,9 +7,8 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Text="Incidentes y causa probable" Style="{StaticResource WsgSectionTitleStyle}" />
-                    <TextBlock Text="WSG agrupa hallazgos cercanos en el tiempo, explica la hipótesis de causa raíz y propone un orden de resolución verificable." Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                    <TextBlock Text="WSG agrupa hallazgos cercanos en el tiempo, explica la hipótesis de causa raíz y propone un orden de resolución verificable. La correlación se ejecuta automáticamente cada 30 segundos." Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0" TextWrapping="Wrap" />
                 </StackPanel>
-                <Button Grid.Column="1" Content="Correlacionar ahora" Click="Refresh_OnClick" Style="{StaticResource WsgPrimaryButtonStyle}" VerticalAlignment="Center" />
             </Grid>
 
             <Grid Margin="0,0,0,14">

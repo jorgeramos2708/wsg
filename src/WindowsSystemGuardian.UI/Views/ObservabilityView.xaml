@@ -12,22 +12,6 @@
                 <Button Grid.Column="1" Content="Analizar ahora" Click="Refresh_OnClick" Style="{StaticResource WsgPrimaryButtonStyle}" VerticalAlignment="Center" />
             </Grid>
 
-            <Grid Margin="0,0,0,14">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Puntuación de salud" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding HealthScoreText, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" /><TextBlock Text="{Binding HealthLabel, Mode=OneWay}" Foreground="{Binding HealthColor, Mode=OneWay}" FontWeight="SemiBold" /></StackPanel></Border>
-                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="CPU" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding CpuPercentText, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" /><ProgressBar Minimum="0" Maximum="100" Value="{Binding CpuPercent, Mode=OneWay}" Height="7" /></StackPanel></Border>
-                <Border Grid.Column="4" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Memoria" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding MemoryPercentText, Mode=OneWay}" FontSize="34" FontWeight="SemiBold" /><ProgressBar Minimum="0" Maximum="100" Value="{Binding MemoryPercent, Mode=OneWay}" Height="7" /></StackPanel></Border>
-                <Border Grid.Column="6" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Tiempo activo" Style="{StaticResource WsgMutedTextStyle}" /><TextBlock Text="{Binding UptimeText, Mode=OneWay}" FontSize="27" FontWeight="SemiBold" /><TextBlock Text="{Binding LastCapture, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" /></StackPanel></Border>
-            </Grid>
-
-            <Grid Margin="0,0,0,14">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.4*"/></Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Commit" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding CommitPercentText, Mode=OneWay}" FontSize="28" FontWeight="SemiBold"/><ProgressBar Minimum="0" Maximum="100" Value="{Binding CommitPercent, Mode=OneWay}" Height="7"/></StackPanel></Border>
-                <Border Grid.Column="2" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Disco ocupado" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding DiskBusyPercentText, Mode=OneWay}" FontSize="28" FontWeight="SemiBold"/><ProgressBar Minimum="0" Maximum="100" Value="{Binding DiskBusyPercent, Mode=OneWay}" Height="7"/></StackPanel></Border>
-                <Border Grid.Column="4" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Red" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding NetworkUtilizationText, Mode=OneWay}" FontSize="28" FontWeight="SemiBold"/><ProgressBar Minimum="0" Maximum="100" Value="{Binding NetworkUtilizationPercent, Mode=OneWay}" Height="7"/></StackPanel></Border>
-                <Border Grid.Column="6" Style="{StaticResource WsgCardStyle}"><StackPanel><TextBlock Text="Principales consumidores" Style="{StaticResource WsgMutedTextStyle}"/><TextBlock Text="{Binding TopCpuProcess, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,0"/><TextBlock Text="{Binding TopMemoryProcess, Mode=OneWay}" Foreground="#FF4B5563" TextWrapping="Wrap" Margin="0,4,0,0"/><TextBlock Text="{Binding ProcessCount, Mode=OneWay}" Style="{StaticResource WsgMutedTextStyle}" Margin="0,4,0,0"/></StackPanel></Border>
-            </Grid>
-
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*" /><ColumnDefinition Width="14" /><ColumnDefinition Width="0.8*" /></Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Style="{StaticResource WsgCardStyle}">
