@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly CleanupView _cleanupView;
     private readonly DiagnosticsView _diagnosticsView;
     private readonly HistoryView _historyView;
+    private readonly System.Windows.Threading.DispatcherTimer _correlationTimer;
 
     public MainWindow(MainViewModel viewModel)
     {
@@ -25,6 +26,12 @@ public partial class MainWindow : Window
 
         _viewModel = viewModel;
         DataContext = viewModel;
+
+        _correlationTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30)
+        };
+        _correlationTimer.Tick += async (_, _) => await CorrelateAsync();
 
         _dashboardView = new DashboardView { DataContext = viewModel.Dashboard };
         _observabilityView = new ObservabilityView { DataContext = viewModel.Observability };
@@ -43,9 +50,17 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             StartupDiagnostics.Write("MainWindow Loaded event fired.");
-            await _viewModel.Dashboard.RefreshAsync();
-            StartupDiagnostics.Write("Initial observability refresh completed.");
+            await CorrelateAsync();
+            StartupDiagnostics.Write("Initial correlation and refresh completed.");
+            _correlationTimer.Start();
         };
+    }
+
+    private async Task CorrelateAsync()
+    {
+        await _viewModel.Dashboard.RefreshAsync();
+        await _viewModel.Incidents.RefreshAsync();
+        await _viewModel.Integrity.RefreshQuickAsync();
     }
 
     private async void NavigationList_OnSelectionChanged(

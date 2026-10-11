@@ -35,8 +35,11 @@ public sealed class LiveDiskVolumeViewModel(string letter, double totalBytes, do
     public double UsedPercent => totalBytes <= 0
         ? 0
         : Math.Clamp((totalBytes - freeBytes) / totalBytes * 100, 0, 100);
-    public string UsedText => $"{(totalBytes - freeBytes) / 1073741824.0:0} GB usados";
-    public string FreeText => $"{freeBytes / 1073741824.0:0.#} GB libres";
+    public double FreePercent => totalBytes <= 0
+        ? 0
+        : Math.Clamp(freeBytes / totalBytes * 100, 0, 100);
+    public string UsedText => $"{(totalBytes - freeBytes) / 1073741824.0:0} GB usados ({UsedPercent:0} %)";
+    public string FreeText => $"{freeBytes / 1073741824.0:0.#} GB libres ({FreePercent:0} %)";
 }
 
 /// <summary>
@@ -52,23 +55,28 @@ public sealed class LiveMonitorViewModel : ObservableObject
     private readonly IObservabilityCollector _performanceCollector;
     private readonly LiveProcessSampler _processSampler;
     private readonly LiveDiskSampler _diskSampler;
+    private readonly LiveNetworkSampler _networkSampler;
     private readonly DispatcherTimer _timer;
     private readonly object _captureSync = new();
     private readonly List<double> _cpuHistory = [];
     private readonly List<double> _memoryHistory = [];
     private readonly List<double> _commitHistory = [];
     private readonly List<double> _diskHistory = [];
+    private readonly List<double> _netInHistory = [];
+    private readonly List<double> _netOutHistory = [];
     private bool _capturing;
     private bool _running;
     private LiveResourceSample? _sample;
     private LiveDiskSample? _diskSample;
+    private LiveNetworkSample? _networkSample;
     private string _statusText = string.Empty;
 
-    public LiveMonitorViewModel(IObservabilityCollector performanceCollector, LiveProcessSampler processSampler, LiveDiskSampler diskSampler)
+    public LiveMonitorViewModel(IObservabilityCollector performanceCollector, LiveProcessSampler processSampler, LiveDiskSampler diskSampler, LiveNetworkSampler networkSampler)
     {
         _performanceCollector = performanceCollector;
         _processSampler = processSampler;
         _diskSampler = diskSampler;
+        _networkSampler = networkSampler;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _timer.Tick += async (_, _) => await TickAsync();
     }
@@ -81,6 +89,8 @@ public sealed class LiveMonitorViewModel : ObservableObject
     public IReadOnlyList<double> MemoryHistory => [.. _memoryHistory];
     public IReadOnlyList<double> CommitHistory => [.. _commitHistory];
     public IReadOnlyList<double> DiskHistory => [.. _diskHistory];
+    public IReadOnlyList<double> NetInHistory => [.. _netInHistory];
+    public IReadOnlyList<double> NetOutHistory => [.. _netOutHistory];
 
     public bool Running
     {
@@ -128,6 +138,20 @@ public sealed class LiveMonitorViewModel : ObservableObject
             { TotalHours: var h } span when h >= 24 => $"{(int)(h / 24)} d {span.Hours} h",
             { TotalHours: var h } => $"{(int)h} h {Math.Floor(_sample.UptimeSeconds % 3600 / 60)} min"
         };
+
+    public double NetInBytesPerSec => _networkSample?.BytesReceivedPerSec ?? 0;
+    public double NetOutBytesPerSec => _networkSample?.BytesSentPerSec ?? 0;
+
+    public string NetInText => FormatNetSpeed(_networkSample?.BytesReceivedPerSec);
+    public string NetOutText => FormatNetSpeed(_networkSample?.BytesSentPerSec);
+
+    private static string FormatNetSpeed(double? bytesPerSec) => bytesPerSec switch
+    {
+        null or <= 0 => "—",
+        var bps when bps.Value / 1048576.0 >= 1 => $"{bps.Value / 1048576.0:0.0} MB/s",
+        var bps when bps.Value / 1024.0 >= 1 => $"{bps.Value / 1024.0:0.0} KB/s",
+        var bps => $"{bps.Value:0} B/s"
+    };
 
     public string LastUpdatedText => _sample is null
         ? "—"
@@ -190,6 +214,7 @@ public sealed class LiveMonitorViewModel : ObservableObject
             var topProcesses = await Task.Run(() => _processSampler.Sample(
                 Environment.ProcessorCount, topN: 5));
             _diskSample = await Task.Run(() => _diskSampler.Sample());
+            _networkSample = await Task.Run(() => _networkSampler.Sample());
 
             if (sample is null)
             {
@@ -206,6 +231,10 @@ public sealed class LiveMonitorViewModel : ObservableObject
             AppendHistory(_commitHistory, sample.CommitPercent);
             if (_diskSample?.BusyPercent is { } busy)
                 AppendHistory(_diskHistory, busy);
+            if (_networkSample?.BytesReceivedPerSec is { } rx)
+                AppendHistory(_netInHistory, rx / 1024.0);
+            if (_networkSample?.BytesSentPerSec is { } tx)
+                AppendHistory(_netOutHistory, tx / 1024.0);
 
             ReplaceTopProcesses(topProcesses);
             ReplaceDiskVolumes(_diskSample);
@@ -217,6 +246,8 @@ public sealed class LiveMonitorViewModel : ObservableObject
             OnPropertyChanged(nameof(CommitText));
             OnPropertyChanged(nameof(DiskBusyPercent));
             OnPropertyChanged(nameof(DiskThroughputText));
+            OnPropertyChanged(nameof(NetInText));
+            OnPropertyChanged(nameof(NetOutText));
             OnPropertyChanged(nameof(UptimeText));
             OnPropertyChanged(nameof(LastUpdatedText));
             OnPropertyChanged(nameof(CpuHistory));

@@ -22,6 +22,9 @@ public sealed class WsgSparkline : FrameworkElement
         nameof(Maximum), typeof(double), typeof(WsgSparkline),
         new FrameworkPropertyMetadata(100.0, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    /// <summary>NaN = auto: el máximo se calcula del mayor valor del histórico (para métricas sin techo, p. ej. throughput).</summary>
+    public bool AutoMaximum { get; set; }
+
     public static readonly DependencyProperty WarningThresholdProperty = DependencyProperty.Register(
         nameof(WarningThreshold), typeof(double), typeof(WsgSparkline),
         new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
@@ -74,14 +77,16 @@ public sealed class WsgSparkline : FrameworkElement
         if (width <= 0 || height <= 0)
             return;
 
-        var maximum = Maximum > 0 ? Maximum : 100;
+        var values = Values;
+        var maximum = AutoMaximum
+            ? values is { Count: > 1 } ? Math.Max(1, values.Max()) : 1
+            : Maximum > 0 ? Maximum : 100;
 
         DrawThreshold(drawingContext, width, height, CriticalThreshold, maximum,
             new SolidColorBrush(Color.FromRgb(0xD9, 0x2D, 0x2D)));
         DrawThreshold(drawingContext, width, height, WarningThreshold, maximum,
             new SolidColorBrush(Color.FromRgb(0xE9, 0x9A, 0x00)));
 
-        var values = Values;
         if (values is not { Count: > 1 })
             return;
 
