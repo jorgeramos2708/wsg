@@ -35,9 +35,7 @@ public sealed class WsgSparkline : FrameworkElement
         new FrameworkPropertyMetadata(Color.FromRgb(0x25, 0x63, 0xA8),
             FrameworkPropertyMetadataOptions.AffectsRender));
 
-    public static readonly DependencyProperty UnitTextProperty = DependencyProperty.Register(
-        nameof(UnitText), typeof(string), typeof(WsgSparkline),
-        new FrameworkPropertyMetadata("%", FrameworkPropertyMetadataOptions.AffectsRender));
+
 
     public IReadOnlyList<double>? Values
     {
@@ -69,13 +67,6 @@ public sealed class WsgSparkline : FrameworkElement
         set => SetValue(SeriesColorProperty, value);
     }
 
-    /// <summary>Unidad de las líneas de umbral para su etiqueta (%, MB/s…).</summary>
-    public string UnitText
-    {
-        get => (string)GetValue(UnitTextProperty);
-        set => SetValue(UnitTextProperty, value);
-    }
-
     protected override void OnRender(DrawingContext drawingContext)
     {
         var width = ActualWidth;
@@ -84,12 +75,11 @@ public sealed class WsgSparkline : FrameworkElement
             return;
 
         var maximum = Maximum > 0 ? Maximum : 100;
-        var unit = string.IsNullOrWhiteSpace(UnitText) ? string.Empty : $" {UnitText.Trim()}";
 
         DrawThreshold(drawingContext, width, height, CriticalThreshold, maximum,
-            new SolidColorBrush(Color.FromRgb(0xD9, 0x2D, 0x2D)), unit);
+            new SolidColorBrush(Color.FromRgb(0xD9, 0x2D, 0x2D)));
         DrawThreshold(drawingContext, width, height, WarningThreshold, maximum,
-            new SolidColorBrush(Color.FromRgb(0xE9, 0x9A, 0x00)), unit);
+            new SolidColorBrush(Color.FromRgb(0xE9, 0x9A, 0x00)));
 
         var values = Values;
         if (values is not { Count: > 1 })
@@ -129,8 +119,7 @@ public sealed class WsgSparkline : FrameworkElement
         double height,
         double threshold,
         double maximum,
-        Brush brush,
-        string unit)
+        Brush brush)
     {
         if (double.IsNaN(threshold) || threshold < 0 || threshold > maximum)
             return;
@@ -139,21 +128,6 @@ public sealed class WsgSparkline : FrameworkElement
         pen.Freeze();
         var y = Y(threshold, maximum, height);
         context.DrawLine(pen, new Point(0, y), new Point(width, y));
-
-        // Etiqueta con el valor medible del umbral, sobre la línea, a la derecha.
-        var label = new FormattedText(
-            $"{threshold:0}{unit}",
-            System.Globalization.CultureInfo.InvariantCulture,
-            FlowDirection.LeftToRight,
-            new Typeface("Segoe UI"),
-            10,
-            brush,
-            1.25);
-        var labelX = Math.Max(0, width - label.Width - 2);
-        var labelY = y - label.Height - 1;
-        if (labelY < 0)
-            labelY = y + 1;
-        context.DrawText(label, new Point(labelX, labelY));
     }
 
     private static double Y(double value, double maximum, double height)

@@ -54,7 +54,10 @@
                             <controls:WsgSparkline Values="{Binding Live.CpuHistory, Mode=OneWay}" Maximum="100"
                                                    WarningThreshold="{x:Static core:MonitoringThresholds.CpuWarningPercent}"
                                                    CriticalThreshold="{x:Static core:MonitoringThresholds.CpuCriticalPercent}"
-                                                   SeriesColor="#FF2563A8" UnitText="%" Height="64" Margin="0,6,0,0" />
+                                                   SeriesColor="#FF2563A8" Height="64" Margin="0,6,0,0" />
+                            <TextBlock Style="{StaticResource WsgMutedTextStyle}" FontSize="10" Margin="0,2,0,0">
+                                <Run Text="aviso 80 % · crítico 90 %" />
+                            </TextBlock>
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="2">
@@ -65,7 +68,10 @@
                             <controls:WsgSparkline Values="{Binding Live.MemoryHistory, Mode=OneWay}" Maximum="100"
                                                    WarningThreshold="{x:Static core:MonitoringThresholds.MemoryWarningPercent}"
                                                    CriticalThreshold="{x:Static core:MonitoringThresholds.MemoryCriticalPercent}"
-                                                   SeriesColor="#FF7C3AED" UnitText="%" Height="64" Margin="0,6,0,0" />
+                                                   SeriesColor="#FF7C3AED" Height="64" Margin="0,6,0,0" />
+                            <TextBlock Style="{StaticResource WsgMutedTextStyle}" FontSize="10" Margin="0,2,0,0">
+                                <Run Text="aviso 90 % · crítico 95 %" />
+                            </TextBlock>
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="0">
@@ -77,7 +83,10 @@
                             <controls:WsgSparkline Values="{Binding Live.CommitHistory, Mode=OneWay}" Maximum="100"
                                                    WarningThreshold="{x:Static core:MonitoringThresholds.CommitWarningPercent}"
                                                    CriticalThreshold="{x:Static core:MonitoringThresholds.CommitCriticalPercent}"
-                                                   SeriesColor="#FF0E7490" UnitText="%" Height="64" Margin="0,6,0,0" />
+                                                   SeriesColor="#FF0E7490" Height="64" Margin="0,6,0,0" />
+                            <TextBlock Style="{StaticResource WsgMutedTextStyle}" FontSize="10" Margin="0,2,0,0">
+                                <Run Text="aviso 90 % · crítico 95 %" />
+                            </TextBlock>
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="2">
@@ -88,7 +97,10 @@
                             <controls:WsgSparkline Values="{Binding Live.DiskHistory, Mode=OneWay}" Maximum="100"
                                                    WarningThreshold="{x:Static core:MonitoringThresholds.DiskActivityWarningPercent}"
                                                    CriticalThreshold="{x:Static core:MonitoringThresholds.DiskActivityCriticalPercent}"
-                                                   SeriesColor="#FF0F766E" UnitText="%" Height="64" Margin="0,6,0,0" />
+                                                   SeriesColor="#FF0F766E" Height="64" Margin="0,6,0,0" />
+                            <TextBlock Style="{StaticResource WsgMutedTextStyle}" FontSize="10" Margin="0,2,0,0">
+                                <Run Text="aviso 85 % · crítico 95 %" />
+                            </TextBlock>
                         </StackPanel>
                     </Grid>
 
