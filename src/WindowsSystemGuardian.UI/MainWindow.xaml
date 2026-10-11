@@ -3,16 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.modernwpf.com/2019"
         Title="Windows System Guardian"
-        Width="1200" Height="720"
-        MinWidth="860" MinHeight="560"
+        Width="1420" Height="860"
+        MinWidth="1080" MinHeight="690"
         WindowStartupLocation="CenterScreen"
         ui:WindowHelper.UseModernWindowStyle="True">
-    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-        <Grid Background="{StaticResource WsgPageBrush}" MinWidth="850">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+    <Grid Background="{StaticResource WsgPageBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="270" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0" Background="{StaticResource WsgSidebarBrush}">
             <Grid>
@@ -103,6 +102,5 @@
         </Border>
 
         <ContentControl x:Name="PageHost" Grid.Column="1" />
-        </Grid>
-    </ScrollViewer>
+    </Grid>
 </Window>
